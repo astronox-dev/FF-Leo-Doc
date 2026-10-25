@@ -270,7 +270,7 @@
 		const winkel = (((-(k.drehung ?? 0)) % 360) + 360) % 360;
 		const nord = s.elemente.find((e) => e.art === 'symbol' && e.symbol === 'nord' && e.auto);
 		if (nord && nord.art === 'symbol') nord.winkel = winkel;
-		else s.elemente.push({ id: neueId(), art: 'symbol', symbol: 'nord', x: 42, y: 62, winkel, groesse: 1.1, auto: true });
+		else s.elemente.push({ id: neueId(), art: 'symbol', symbol: 'nord', x: 55, y: 60, winkel, groesse: 1.4, auto: true });
 		karteOffen = false;
 	}
 	function karteEntfernen() {

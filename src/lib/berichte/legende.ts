@@ -342,11 +342,11 @@ export const SYMBOLE: SymbolDef[] = [
 	/* Sonstiges */
 	zeichen({
 		id: 'nord',
-		name: 'Nordpfeil',
+		name: 'Nordrichtung',
 		gruppe: 'sonstige',
-		b: 32,
-		h: 64,
-		svg: pfad('M16 3 V62 M8 15 L16 3 L24 15', S, 2) + `<path d="M9.5 57 V35 L22.5 57 V35" fill="none" stroke="${S}" stroke-width="4.2" stroke-linejoin="miter"/>`
+		b: 48,
+		h: 32,
+		svg: linie(24, 4, 24, 30) + `<path d="M20 9 L24 2 L28 9 Z" fill="${S}"/><path d="M20 30 L24 23 L28 30 Z" fill="${S}"/>` + schrift(31, 16.5, 'N', S, 10)
 	}),
 	zeichen({
 		id: 'wind',
