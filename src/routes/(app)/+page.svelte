@@ -4,7 +4,7 @@
 	import CircleCheck from '@lucide/svelte/icons/circle-check';
 	import TypMarke from '$lib/components/TypMarke.svelte';
 	import { pageTitle } from '$lib/app';
-	import { TYP_REIHENFOLGE, TYPEN } from '$lib/berichte/typen';
+	import { TYP_REIHENFOLGE } from '$lib/berichte/typen';
 	import { datumAusIso, relativ } from '$lib/format';
 
 	let { data } = $props();
@@ -25,22 +25,19 @@
 
 	<div class="mt-8 grid gap-4 md:grid-cols-2">
 		<a href="/berichte" class="kachel card group">
-			<div class="streifen" aria-hidden="true">
-				{#each TYP_REIHENFOLGE as typ (typ)}
-					<span style:background={TYPEN[typ].farbe} class:tus={typ === 'tus'}></span>
-				{/each}
-			</div>
 			<div class="p-6">
 				<FileText size={34} class="text-red" aria-hidden="true" />
 				<h2 class="display mt-4 text-3xl">Einsatzbericht verfassen</h2>
 				<p class="mt-2 text-ink-2">Brand, Technik, Schadstoff oder TUS: Aufnahmeblatt digital ausfüllen, Skizze zeichnen, unterschreiben und einreichen.</p>
+				<span class="mt-4 flex flex-wrap gap-1.5" aria-hidden="true">
+					{#each TYP_REIHENFOLGE as typ (typ)}<TypMarke {typ} />{/each}
+				</span>
 				<p class="mt-4 font-semibold text-red">
 					{data.anzahlOffen === 0 ? 'Keine offenen Berichte' : data.anzahlOffen === 1 ? '1 offener Bericht' : `${data.anzahlOffen} offene Berichte`}
 				</p>
 			</div>
 		</a>
 		<a href="/atemschutz" class="kachel card group">
-			<div class="streifen" aria-hidden="true"><span style:background="#2156a5"></span></div>
 			<div class="p-6">
 				<Timer size={34} class="text-red" aria-hidden="true" />
 				<h2 class="display mt-4 text-3xl">Atemschutzüberwachung</h2>
@@ -79,7 +76,7 @@
 						{#each data.asue as e (e.id)}
 							<li>
 								<a href="/atemschutz/{e.id}" class="flex items-center gap-3 px-4 py-3 hover:bg-surface-2">
-									<span class="grid size-9 place-items-center rounded-lg bg-[#2156a5] text-white"><Timer size={18} aria-hidden="true" /></span>
+									<span class="grid size-9 place-items-center rounded-lg bg-red text-white"><Timer size={18} aria-hidden="true" /></span>
 									<span class="min-w-0 flex-1">
 										<span class="block truncate font-semibold">{e.adresse || 'Ohne Adresse'}</span>
 										<span class="block text-sm text-ink-3">{datumAusIso(e.datum)}, Code {e.id.slice(0, 3)}-{e.id.slice(3)}</span>
@@ -95,25 +92,16 @@
 </div>
 
 <style>
+	/* Flach: beim Überfahren wird nur der Rahmen kräftiger */
 	.kachel {
 		display: block;
 		overflow: hidden;
 		transition:
-			box-shadow 160ms,
-			transform 160ms var(--ease-out);
+			box-shadow 120ms,
+			background-color 120ms;
 	}
 	.kachel:hover {
-		box-shadow: var(--shadow-2);
-		transform: translateY(-2px);
-	}
-	.streifen {
-		display: flex;
-		height: 8px;
-	}
-	.streifen span {
-		flex: 1;
-	}
-	.streifen span.tus {
-		box-shadow: inset 0 -1px 0 var(--c-line-strong), inset 0 1px 0 var(--c-line-strong);
+		background: var(--c-surface-2);
+		box-shadow: 0 0 0 1px var(--c-ink-3);
 	}
 </style>

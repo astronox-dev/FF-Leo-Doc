@@ -35,7 +35,7 @@
 <style>
 	.vorschau {
 		padding: 1.5rem 0.5rem;
-		background: #6b7280;
+		background: #3a3a3a;
 	}
 	.seiten {
 		display: flex;
@@ -44,7 +44,7 @@
 		gap: 1.25rem;
 	}
 	.seiten :global(.seite) {
-		box-shadow: 0 6px 24px rgb(0 0 0 / 0.35);
+		box-shadow: 0 0 0 1px rgb(0 0 0 / 0.4);
 	}
 	@media print {
 		.vorschau {

@@ -82,12 +82,12 @@
 		overflow: hidden;
 		text-align: left;
 		transition:
-			box-shadow 160ms,
-			transform 160ms var(--ease-out);
+			box-shadow 120ms,
+			background-color 120ms;
 	}
 	.typ:hover {
-		box-shadow: var(--shadow-2);
-		transform: translateY(-2px);
+		background: var(--c-surface-2);
+		box-shadow: 0 0 0 1px var(--c-ink-3);
 	}
 	.typ[aria-busy='true'] {
 		opacity: 0.6;
@@ -97,7 +97,7 @@
 		display: block;
 		padding: 0.35rem 1rem;
 		background: var(--typ);
-		color: #1d2b3a;
+		color: #111;
 		font-size: 0.8rem;
 		font-weight: 700;
 	}

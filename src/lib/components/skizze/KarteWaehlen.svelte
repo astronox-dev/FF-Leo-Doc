@@ -283,7 +283,7 @@
 		margin: auto;
 		padding: 0;
 		border: 0;
-		border-radius: 16px;
+		border-radius: var(--radius-card);
 		background: var(--c-surface);
 		color: var(--c-ink);
 		box-shadow: var(--shadow-3);
@@ -296,7 +296,7 @@
 		position: relative;
 		border: 3px solid #af2b1e;
 		border-radius: 4px;
-		box-shadow: 0 0 0 9999px rgb(16 24 33 / 0.38);
+		box-shadow: 0 0 0 9999px rgb(0 0 0 / 0.4);
 	}
 	/* Markiert die Oberkante: sie wird zur Oberkante der Skizze */
 	.oben {

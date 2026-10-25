@@ -111,7 +111,7 @@
 					{#each liste as e (e.id)}
 						<li>
 							<a href="/atemschutz/{e.id}" class="flex items-center gap-3 px-4 py-3 hover:bg-surface-2">
-								<span class="grid size-9 shrink-0 place-items-center rounded-lg text-white" style:background={e.abgeschlossen ? '#5c6878' : '#2156a5'}><Timer size={18} aria-hidden="true" /></span>
+								<span class="grid size-9 shrink-0 place-items-center rounded-lg {e.abgeschlossen ? 'bg-surface-3 text-ink-3' : 'bg-red text-white'}"><Timer size={18} aria-hidden="true" /></span>
 								<span class="min-w-0 flex-1">
 									<span class="block truncate font-semibold">{[e.adresse, e.stufe].filter(Boolean).join(', ') || 'Ohne Adresse'}</span>
 									<span class="block text-sm text-ink-3">{datumAusIso(e.datum)}, Code {e.id.slice(0, 3)}-{e.id.slice(3)}, angelegt {relativ(e.erstellt)}</span>

@@ -8,6 +8,7 @@
 	import Sun from '@lucide/svelte/icons/sun';
 	import Moon from '@lucide/svelte/icons/moon';
 	import Monitor from '@lucide/svelte/icons/monitor';
+	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import { APP_NAME } from '$lib/app';
 
 	let { data, children } = $props();
@@ -32,22 +33,18 @@
 <svelte:window onclick={(e) => { if (!(e.target as Element).closest('.konto')) menue = false; }} />
 
 <div class="flex min-h-dvh flex-col">
-	<header class="kopf sticky top-0 z-40 bg-[#af2b1e] text-white print:hidden">
+	<!-- Kopfzeile in beiden Darstellungen schwarz; der aktive Bereich ist rot unterstrichen -->
+	<header class="kopf sticky top-0 z-40 print:hidden">
 		<div class="wrap flex h-16 items-center gap-4">
 			<a href="/" class="flex shrink-0 items-center gap-3" aria-label="{APP_NAME}, zur Startseite">
-				<img src="/bilder/wappen.webp" alt="" width="189" height="224" class="h-10 w-auto drop-shadow" />
-				<img src="/bilder/logo-schriftzug.webp" alt="" width="640" height="122" class="hidden w-36 drop-shadow lg:block" />
-				<span class="display border-white/40 text-2xl lg:border-l lg:pl-3">{APP_NAME}</span>
+				<img src="/bilder/wappen.webp" alt="" width="189" height="224" class="h-9 w-auto" />
+				<img src="/bilder/logo-schriftzug.webp" alt="" width="640" height="122" class="hidden w-32 lg:block" />
+				<span class="display border-white/20 text-2xl lg:border-l lg:pl-3">{APP_NAME}</span>
 			</a>
 
-			<nav class="ml-auto hidden items-center gap-1 md:flex" aria-label="Bereiche">
+			<nav class="ml-auto hidden h-full items-stretch md:flex" aria-label="Bereiche">
 				{#each navi as n (n.href)}
-					<a
-						href={n.href}
-						class="flex items-center gap-2 rounded-lg px-3 py-2 font-semibold hover:bg-black/15"
-						style:background-color={aktiv(n.href) ? 'rgb(0 0 0 / 0.22)' : undefined}
-						aria-current={aktiv(n.href) ? 'page' : undefined}
-					>
+					<a href={n.href} class="reiter" aria-current={aktiv(n.href) ? 'page' : undefined}>
 						<n.icon size={18} aria-hidden="true" />{n.text}
 					</a>
 				{/each}
@@ -55,27 +52,28 @@
 
 			<div class="konto relative ml-auto md:ml-2">
 				<button
-					class="flex h-10 items-center gap-2 rounded-lg border border-white/40 px-3 font-semibold hover:bg-black/15"
+					class="flex h-10 items-center gap-2 rounded-lg pr-2 pl-1.5 font-semibold text-white/85 hover:bg-white/10 hover:text-white"
 					aria-expanded={menue}
 					aria-haspopup="menu"
 					onclick={() => (menue = !menue)}
 				>
-					<span class="grid size-7 place-items-center rounded-full bg-white text-sm font-bold text-[#af2b1e]">
+					<span class="grid size-7 place-items-center rounded-full bg-red text-sm font-bold text-white">
 						{data.user.name.slice(0, 1).toUpperCase()}
 					</span>
 					<span class="hidden max-w-32 truncate lg:inline">{data.user.name}</span>
+					<ChevronDown size={16} class="opacity-70" aria-hidden="true" />
 				</button>
 				{#if menue}
 					<div class="absolute right-0 mt-2 w-64 rounded-xl bg-surface p-2 text-ink shadow-[var(--shadow-2)]" role="menu">
 						<p class="px-3 pt-1 pb-2 text-sm text-ink-3">
 							Angemeldet als <strong class="text-ink">{data.user.username}</strong>{data.user.role === 'admin' ? ' (Admin)' : ''}
 						</p>
-						<div class="mb-1 grid grid-cols-3 gap-1 rounded-lg bg-surface-2 p-1" role="group" aria-label="Darstellung">
+						<div class="mb-1 grid grid-cols-3 gap-1 rounded-lg bg-surface-3 p-1" role="group" aria-label="Darstellung">
 							{#each [['light', 'Hell', Sun], ['dark', 'Dunkel', Moon], ['system', 'Gerät', Monitor]] as const as [wert, text, Icon] (wert)}
 								<button
 									class="flex flex-col items-center gap-0.5 rounded-md py-1.5 text-xs font-semibold"
 									class:bg-surface={theme === wert}
-									style:box-shadow={theme === wert ? 'var(--shadow-1)' : undefined}
+									class:text-ink-2={theme !== wert}
 									aria-pressed={theme === wert}
 									onclick={() => themaSetzen(wert)}
 								>
@@ -83,7 +81,7 @@
 								</button>
 							{/each}
 						</div>
-						<a href="/passwort" class="flex items-center gap-2 rounded-lg px-3 py-2.5 font-medium hover:bg-surface-2" role="menuitem">
+						<a href="/passwort" class="flex items-center gap-2 rounded-lg px-3 py-2.5 font-medium hover:bg-surface-3" role="menuitem">
 							<KeyRound size={18} aria-hidden="true" />Passwort ändern
 						</a>
 						<form method="POST" action="/logout">
@@ -101,12 +99,64 @@
 		{@render children()}
 	</main>
 
-	<!-- Am Handy: Bereiche unten erreichbar -->
-	<nav class="fixed inset-x-0 bottom-0 z-40 grid border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] md:hidden print:hidden" style:grid-template-columns="repeat({navi.length}, 1fr)" aria-label="Bereiche">
+	<!-- Am Handy: Bereiche unten erreichbar, ebenfalls schwarz -->
+	<nav class="unten fixed inset-x-0 bottom-0 z-40 grid pb-[env(safe-area-inset-bottom)] md:hidden print:hidden" style:grid-template-columns="repeat({navi.length}, 1fr)" aria-label="Bereiche">
 		{#each navi as n (n.href)}
-			<a href={n.href} class="flex flex-col items-center gap-0.5 py-2 text-xs font-semibold" class:text-red={aktiv(n.href)} class:text-ink-2={!aktiv(n.href)} aria-current={aktiv(n.href) ? 'page' : undefined}>
+			<a href={n.href} class="flex flex-col items-center gap-0.5 py-2 text-xs font-semibold" aria-current={aktiv(n.href) ? 'page' : undefined}>
 				<n.icon size={22} aria-hidden="true" />{n.text}
 			</a>
 		{/each}
 	</nav>
 </div>
+
+<style>
+	.kopf,
+	.unten {
+		background: var(--c-black);
+		color: #fff;
+	}
+	.kopf {
+		border-bottom: 1px solid #262626;
+	}
+	.unten {
+		border-top: 1px solid #262626;
+	}
+	.reiter {
+		position: relative;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0 0.85rem;
+		color: rgb(255 255 255 / 0.62);
+		font-weight: 600;
+		transition: color 120ms;
+	}
+	.reiter:hover,
+	.reiter[aria-current='page'] {
+		color: #fff;
+	}
+	.reiter[aria-current='page']::after,
+	.unten a[aria-current='page']::before {
+		content: '';
+		position: absolute;
+		left: 0.85rem;
+		right: 0.85rem;
+		height: 3px;
+		background: #e5483a;
+	}
+	.reiter[aria-current='page']::after {
+		bottom: -1px;
+	}
+	.unten a {
+		position: relative;
+		color: rgb(255 255 255 / 0.62);
+	}
+	.unten a[aria-current='page'] {
+		color: #fff;
+	}
+	.unten a[aria-current='page']::before {
+		top: -1px;
+		left: 30%;
+		right: 30%;
+	}
+</style>

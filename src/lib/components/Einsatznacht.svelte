@@ -102,7 +102,7 @@
 		overflow: hidden;
 		background:
 			radial-gradient(120% 70% at 50% 110%, #3a0d07 0%, transparent 60%),
-			linear-gradient(180deg, #07090d 0%, #0d0f15 55%, #1a0b08 100%);
+			linear-gradient(180deg, #060606 0%, #0c0c0c 55%, #1a0b08 100%);
 	}
 	canvas {
 		position: absolute;

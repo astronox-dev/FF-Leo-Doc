@@ -584,9 +584,8 @@
 		flex-direction: column;
 		overflow: hidden;
 		border: 1px solid var(--c-line);
-		border-radius: 12px;
+		border-radius: var(--radius-card);
 		background: var(--c-surface);
-		box-shadow: var(--shadow-1);
 	}
 	.trupp[data-status='einsatz'] {
 		--band: #2156a5;
@@ -769,7 +768,7 @@
 		margin: auto;
 		padding: 0;
 		border: 0;
-		border-radius: 14px;
+		border-radius: var(--radius-card);
 		background: var(--c-surface);
 		color: var(--c-ink);
 		box-shadow: var(--shadow-3);

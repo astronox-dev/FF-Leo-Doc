@@ -6,7 +6,7 @@
 		id,
 		titel,
 		hinweis,
-		farbe = '#e9edf2',
+		farbe = '#e6e6e6',
 		children
 	}: { id: string; titel: string; hinweis?: string; farbe?: string; children: Snippet } = $props();
 </script>
@@ -24,11 +24,12 @@
 <style>
 	.abschnitt {
 		overflow: hidden;
-		border: 1.5px solid var(--c-line-strong);
+		border: 1px solid var(--c-line-strong);
+		box-shadow: none;
 	}
 	header {
 		padding: 0.7rem 1.1rem;
-		color: #1d2b3a;
-		border-bottom: 1.5px solid var(--c-line-strong);
+		color: #111;
+		border-bottom: 1px solid var(--c-line-strong);
 	}
 </style>
