@@ -339,7 +339,7 @@
 		{#if TYPEN[typ].skizze}
 			<Abschnitt id="skizze" titel="Skizze" hinweis="Kartenausschnitt wählen und mit den Zeichen der Legende ergänzen." {farbe}>
 				<Zeile voll>
-					<SkizzenEditor bind:wert={daten.skizze} {typ} einsatzort={daten.einsatzort} />
+					<SkizzenEditor bind:wert={daten.skizze} {typ} einsatzort={daten.einsatzort} funknamen={data.funknamen} />
 				</Zeile>
 			</Abschnitt>
 		{/if}

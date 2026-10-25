@@ -10,12 +10,20 @@
 	import Plus from '@lucide/svelte/icons/plus';
 	import Minus from '@lucide/svelte/icons/minus';
 	import MapOff from '@lucide/svelte/icons/map-pin-off';
+	import Search from '@lucide/svelte/icons/search';
 	import SkizzeSvg from './SkizzeSvg.svelte';
 	import KarteWaehlen from './KarteWaehlen.svelte';
-	import { LEGENDE, SYMBOL, SYMBOL_B, SYMBOL_H } from '$lib/berichte/legende';
+	import { GRUPPEN, LEGENDE, MASS, SYMBOL, SYMBOLE, zeichnen, type Feld } from '$lib/berichte/legende';
 	import type { BerichtTyp, Skizze, SkizzenElement, SkizzenKarte } from '$lib/berichte/typen';
 
-	let { wert = $bindable(), typ, einsatzort }: { wert: Skizze | null; typ: BerichtTyp; einsatzort: string } = $props();
+	let {
+		wert = $bindable(),
+		typ,
+		einsatzort,
+		funknamen = []
+	}: { wert: Skizze | null; typ: BerichtTyp; einsatzort: string; funknamen?: string[] } = $props();
+
+	const uid = $props.id();
 
 	type Werkzeug = 'auswahl' | 'stift' | 'text';
 	const FARBEN = [
@@ -33,8 +41,18 @@
 	let verlauf: string[] = [];
 	let textFeld = $state<HTMLInputElement>();
 
-	const palette = $derived(LEGENDE[typ].map((id) => SYMBOL[id]));
+	/* Palette: zuerst die Zeichen des Aufnahmeblatts, dann alle Gruppen der E-27; die Suche geht über alle */
+	let gruppe = $state('blatt');
+	let suche = $state('');
+	const normal = (s: string) => s.toLowerCase().replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss');
+	const palette = $derived.by(() => {
+		const q = normal(suche.trim());
+		if (q) return SYMBOLE.filter((s) => normal(s.name).includes(q));
+		if (gruppe === 'blatt') return LEGENDE[typ].map((id) => SYMBOL[id]);
+		return SYMBOLE.filter((s) => s.gruppe === gruppe);
+	});
 	const gewaehlt = $derived(wert?.elemente.find((e) => e.id === auswahl) ?? null);
+	const gewaehltDef = $derived(gewaehlt?.art === 'symbol' ? SYMBOL[gewaehlt.symbol] : null);
 
 	const neueId = () => Math.random().toString(36).slice(2, 10);
 
@@ -64,7 +82,7 @@
 	function symbolSetzen(symbol: string, x: number, y: number) {
 		const s = sicherstellen();
 		merken();
-		const el: SkizzenElement = { id: neueId(), art: 'symbol', symbol, x, y, winkel: 0, groesse: 1, ...(SYMBOL[symbol].mitText ? { text: SYMBOL[symbol].mitText } : {}) };
+		const el: SkizzenElement = { id: neueId(), art: 'symbol', symbol, x, y, winkel: 0, groesse: 1 };
 		s.elemente.push(el);
 		auswahl = el.id;
 		werkzeug = 'auswahl';
@@ -109,6 +127,7 @@
 	type Aktion =
 		| { art: 'verschieben'; id: string; dx: number; dy: number; start: { x: number; y: number }; punkte?: number[] }
 		| { art: 'drehen'; id: string }
+		| { art: 'ausleger'; id: string; px: number; py: number }
 		| { art: 'groesse'; id: string; abstand: number; groesse: number }
 		| { art: 'stift'; id: string };
 	let aktion: Aktion | null = null;
@@ -129,6 +148,7 @@
 			svg.setPointerCapture(e.pointerId);
 			merken();
 			if (griff === 'drehen') aktion = { art: 'drehen', id: gewaehlt.id };
+			else if (griff === 'ausleger' && griffe?.ausleger) aktion = { art: 'ausleger', id: gewaehlt.id, px: griffe.ausleger.dreh.x, py: griffe.ausleger.dreh.y };
 			else aktion = { art: 'groesse', id: gewaehlt.id, abstand: Math.max(8, Math.hypot(p.x - gewaehlt.x, p.y - gewaehlt.y)), groesse: gewaehlt.groesse };
 			return;
 		}
@@ -184,6 +204,12 @@
 			const einrasten = Math.round(w / 45) * 45;
 			if (Math.abs(w - einrasten) < 5) w = einrasten;
 			el.winkel = Math.round(((w % 360) + 360) % 360);
+		} else if (aktion.art === 'ausleger' && el.art === 'symbol') {
+			// Winkel des Auslegers relativ zum Fahrzeug, rastet in 15°-Schritten
+			let w = (Math.atan2(p.y - aktion.py, p.x - aktion.px) * 180) / Math.PI - el.winkel;
+			const einrasten = Math.round(w / 15) * 15;
+			if (Math.abs(w - einrasten) < 4) w = einrasten;
+			el.ausleger = Math.round((((w + 180) % 360) + 360) % 360) - 180;
 		} else if (aktion.art === 'groesse' && el.art !== 'linie') {
 			const faktor = Math.hypot(p.x - el.x, p.y - el.y) / aktion.abstand;
 			el.groesse = Math.round(Math.min(6, Math.max(0.4, aktion.groesse * faktor)) * 100) / 100;
@@ -217,6 +243,18 @@
 		merken();
 		gewaehlt.groesse = Math.round(Math.min(6, Math.max(0.4, gewaehlt.groesse * faktor)) * 100) / 100;
 	}
+	function auslegerDrehen(grad: number) {
+		if (gewaehlt?.art !== 'symbol' || !gewaehltDef?.ausleger) return;
+		merken();
+		const w = (gewaehlt.ausleger ?? gewaehltDef.ausleger.winkel) + grad;
+		gewaehlt.ausleger = ((((w + 180) % 360) + 360) % 360) - 180;
+	}
+	const vorschlaege = (f: Feld) => (f.funk ? funknamen : (f.vorschlaege ?? []));
+	const feldWert = (f: Feld) => (gewaehlt?.art === 'symbol' ? (gewaehlt.felder?.[f.key] ?? f.vorgabe ?? '') : '');
+	function feldSetzen(key: string, inhalt: string) {
+		if (gewaehlt?.art !== 'symbol') return;
+		gewaehlt.felder = { ...(gewaehlt.felder ?? {}), [key]: inhalt };
+	}
 	function farbeSetzen(f: string) {
 		farbe = f;
 		if (gewaehlt && (gewaehlt.art === 'text' || gewaehlt.art === 'linie')) {
@@ -232,7 +270,7 @@
 		const winkel = (((-(k.drehung ?? 0)) % 360) + 360) % 360;
 		const nord = s.elemente.find((e) => e.art === 'symbol' && e.symbol === 'nord' && e.auto);
 		if (nord && nord.art === 'symbol') nord.winkel = winkel;
-		else s.elemente.push({ id: neueId(), art: 'symbol', symbol: 'nord', x: 55, y: 60, winkel, groesse: 1.4, auto: true });
+		else s.elemente.push({ id: neueId(), art: 'symbol', symbol: 'nord', x: 42, y: 62, winkel, groesse: 1.1, auto: true });
 		karteOffen = false;
 	}
 	function karteEntfernen() {
@@ -256,16 +294,27 @@
 		}
 	}
 
-	/** Griffe zum Drehen und Vergrößern, in Skizzen-Koordinaten */
+	/** Griffe zum Drehen und Vergrößern, bei Kran und Leiter auch für den Ausleger, in Skizzen-Koordinaten */
 	const griffe = $derived.by(() => {
 		if (!gewaehlt || gewaehlt.art === 'linie') return null;
-		const b = gewaehlt.art === 'text' ? Math.max(60, gewaehlt.text.length * 13) : SYMBOL_B;
-		const h = gewaehlt.art === 'text' ? 32 : SYMBOL_H;
-		const hw = (b / 2) * gewaehlt.groesse + 6, hh = (h / 2) * gewaehlt.groesse + 6;
+		const d = gewaehlt.art === 'symbol' ? SYMBOL[gewaehlt.symbol] : null;
+		const b = gewaehlt.art === 'text' ? Math.max(60, gewaehlt.text.length * 13) : (d?.b ?? 48) * MASS;
+		const h = gewaehlt.art === 'text' ? 32 : (d?.h ?? 32) * MASS;
+		const g = gewaehlt.groesse;
+		const hw = (b / 2) * g + 6, hh = (h / 2) * g + 6;
 		const a = (gewaehlt.winkel * Math.PI) / 180;
 		const dreh = (x: number, y: number) => ({ x: gewaehlt.x + x * Math.cos(a) - y * Math.sin(a), y: gewaehlt.y + x * Math.sin(a) + y * Math.cos(a) });
 		const ecken = [dreh(-hw, -hh), dreh(hw, -hh), dreh(hw, hh), dreh(-hw, hh)];
-		return { ecken, drehen: dreh(0, -hh - 30), oben: dreh(0, -hh), groesse: ecken[2] };
+		let ausleger: { dreh: { x: number; y: number }; spitze: { x: number; y: number } } | null = null;
+		if (d?.ausleger && gewaehlt.art === 'symbol') {
+			const au = d.ausleger, w = ((gewaehlt.ausleger ?? au.winkel) * Math.PI) / 180;
+			const inSkizze = (x: number, y: number) => dreh((x - d.b / 2) * MASS * g, (y - d.h / 2) * MASS * g);
+			ausleger = {
+				dreh: inSkizze(au.x, au.y),
+				spitze: inSkizze(au.x + (au.laenge + 9) * Math.cos(w), au.y + (au.laenge + 9) * Math.sin(w))
+			};
+		}
+		return { ecken, drehen: dreh(0, -hh - 30), oben: dreh(0, -hh), groesse: ecken[2], ausleger };
 	});
 </script>
 
@@ -312,41 +361,103 @@
 	</div>
 
 	{#if gewaehlt}
-		<div class="mt-2 flex flex-wrap items-center gap-2 rounded-xl bg-surface-2 p-2">
-			<span class="px-2 text-sm font-semibold text-ink-2">
-				{gewaehlt.art === 'symbol' ? SYMBOL[gewaehlt.symbol]?.name : gewaehlt.art === 'text' ? 'Text' : 'Linie'}
-			</span>
-			{#if gewaehlt.art === 'text' || (gewaehlt.art === 'symbol' && SYMBOL[gewaehlt.symbol]?.mitText)}
-				<input bind:this={textFeld} class="input min-h-9 w-48 py-1" bind:value={gewaehlt.text} aria-label="Beschriftung" />
+		<div class="mt-2 rounded-xl bg-surface-2 p-2">
+			<div class="flex flex-wrap items-center gap-2">
+				<span class="px-2 text-sm font-semibold text-ink-2">
+					{gewaehltDef ? gewaehltDef.name : gewaehlt.art === 'text' ? 'Text' : 'Linie'}
+				</span>
+				{#if gewaehlt.art === 'text'}
+					<input bind:this={textFeld} class="input min-h-9 w-48 py-1" bind:value={gewaehlt.text} aria-label="Beschriftung" />
+				{/if}
+				{#if gewaehlt.art !== 'linie'}
+					<button type="button" class="btn btn-ruhig min-h-9 px-2" onclick={() => drehen(-15)} aria-label="Nach links drehen"><RotateCcw size={18} /></button>
+					<button type="button" class="btn btn-ruhig min-h-9 px-2" onclick={() => drehen(15)} aria-label="Nach rechts drehen"><RotateCw size={18} /></button>
+					<button type="button" class="btn btn-ruhig min-h-9 px-2" onclick={() => skalieren(1 / 1.2)} aria-label="Kleiner"><Minus size={18} /></button>
+					<button type="button" class="btn btn-ruhig min-h-9 px-2" onclick={() => skalieren(1.2)} aria-label="Größer"><Plus size={18} /></button>
+				{/if}
+				{#if gewaehltDef?.ausleger}
+					<span class="flex items-center gap-1 rounded-lg bg-surface-3 py-0.5 pr-0.5 pl-2.5 text-sm font-semibold text-ink-2">
+						Ausleger
+						<button type="button" class="btn btn-ruhig min-h-8 px-1.5" onclick={() => auslegerDrehen(-15)} aria-label="Ausleger nach links drehen"><RotateCcw size={16} /></button>
+						<button type="button" class="btn btn-ruhig min-h-8 px-1.5" onclick={() => auslegerDrehen(15)} aria-label="Ausleger nach rechts drehen"><RotateCw size={16} /></button>
+					</span>
+				{/if}
+				<button type="button" class="btn btn-gefahr min-h-9 px-3" onclick={loeschen}><Trash2 size={18} aria-hidden="true" />Entfernen</button>
+			</div>
+			{#if gewaehlt.art === 'symbol' && gewaehltDef?.felder}
+				<div class="mt-2 flex flex-wrap items-end gap-3 border-t border-line pt-2">
+					{#each gewaehltDef.felder as f (f.key)}
+						{#if f.knoepfe}
+							<div class="flex items-center gap-2" role="group" aria-label={f.name}>
+								<span class="text-sm font-semibold text-ink-2">{f.name}</span>
+								<div class="flex rounded-lg bg-surface-3 p-1">
+									{#each ['', ...f.knoepfe] as k (k)}
+										<button
+											type="button"
+											class="min-w-10 rounded-md px-2.5 py-1 text-sm font-bold"
+											class:bg-surface={feldWert(f) === k}
+											style:box-shadow={feldWert(f) === k ? 'var(--shadow-1)' : undefined}
+											aria-pressed={feldWert(f) === k}
+											onclick={() => { merken(); feldSetzen(f.key, k); }}
+										>{k || 'ohne'}</button>
+									{/each}
+								</div>
+							</div>
+						{:else}
+							<label class="block">
+								<span class="text-xs font-semibold text-ink-2">{f.name}</span>
+								<input
+									class="input min-h-9 py-1 {f.zahl ? 'w-28' : 'w-52'}"
+									value={feldWert(f)}
+									list="{uid}-{f.funk ? 'funk' : f.key}"
+									inputmode={f.zahl ? 'numeric' : undefined}
+									autocomplete="off"
+									onfocus={merken}
+									oninput={(e) => feldSetzen(f.key, e.currentTarget.value)}
+								/>
+							</label>
+							<datalist id="{uid}-{f.funk ? 'funk' : f.key}">
+								{#each vorschlaege(f) as v (v)}<option value={v}></option>{/each}
+							</datalist>
+						{/if}
+					{/each}
+				</div>
 			{/if}
-			{#if gewaehlt.art !== 'linie'}
-				<button type="button" class="btn btn-ruhig min-h-9 px-2" onclick={() => drehen(-15)} aria-label="Nach links drehen"><RotateCcw size={18} /></button>
-				<button type="button" class="btn btn-ruhig min-h-9 px-2" onclick={() => drehen(15)} aria-label="Nach rechts drehen"><RotateCw size={18} /></button>
-				<button type="button" class="btn btn-ruhig min-h-9 px-2" onclick={() => skalieren(1 / 1.2)} aria-label="Kleiner"><Minus size={18} /></button>
-				<button type="button" class="btn btn-ruhig min-h-9 px-2" onclick={() => skalieren(1.2)} aria-label="Größer"><Plus size={18} /></button>
-			{/if}
-			<button type="button" class="btn btn-gefahr min-h-9 px-3" onclick={loeschen}><Trash2 size={18} aria-hidden="true" />Entfernen</button>
 		</div>
 	{/if}
 
 	<div class="mt-3 grid gap-3 lg:grid-cols-[15rem_minmax(0,1fr)]">
-		<!-- Legende als Palette -->
-		<div class="palette" role="group" aria-label="Zeichen zum Einsetzen">
-			{#each palette as s (s.id)}
-				<button
-					type="button"
-					class="zeichen"
-					class:aktiv={platzieren === s.id}
-					title={s.name}
-					onpointerdown={(e) => paletteDown(e, s.id)}
-					onpointermove={paletteMove}
-					onpointerup={paletteUp}
-					onpointercancel={() => (ziehen = null)}
-				>
-					<svg viewBox="0 0 48 32" class="h-7 w-11 shrink-0" aria-hidden="true">{@html s.svg}</svg>
-					<span class="text-left text-[0.8rem] leading-tight">{s.name}</span>
-				</button>
-			{/each}
+		<!-- Zeichen nach ÖBFV RL E-27 als Palette -->
+		<div class="min-w-0">
+			<div class="mb-2 grid grid-cols-2 gap-2 lg:grid-cols-1">
+				<label class="relative block">
+					<Search size={16} class="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-ink-3" aria-hidden="true" />
+					<input type="search" class="input min-h-10 py-1 pl-8" placeholder="Zeichen suchen" bind:value={suche} aria-label="Zeichen suchen" />
+				</label>
+				<select class="input min-h-10 py-1" bind:value={gruppe} aria-label="Gruppe" disabled={!!suche.trim()}>
+					<option value="blatt">Aufnahmeblatt</option>
+					{#each GRUPPEN as g (g.id)}<option value={g.id}>{g.name}</option>{/each}
+				</select>
+			</div>
+			<div class="palette" role="group" aria-label="Zeichen zum Einsetzen">
+				{#each palette as s (s.id)}
+					<button
+						type="button"
+						class="zeichen"
+						class:aktiv={platzieren === s.id}
+						title={s.name}
+						onpointerdown={(e) => paletteDown(e, s.id)}
+						onpointermove={paletteMove}
+						onpointerup={paletteUp}
+						onpointercancel={() => (ziehen = null)}
+					>
+						<svg viewBox={s.vb.join(' ')} class="h-8 w-12 shrink-0" aria-hidden="true">{@html zeichnen(s)}</svg>
+						<span class="text-left text-[0.8rem] leading-tight">{s.name}</span>
+					</button>
+				{:else}
+					<p class="hinweis px-1">Kein Zeichen gefunden.</p>
+				{/each}
+			</div>
 		</div>
 
 		<div>
@@ -355,7 +466,10 @@
 					In die Skizze tippen, um „{SYMBOL[platzieren].name}“ zu setzen. Esc bricht ab.
 				</p>
 			{:else}
-				<p class="hinweis mb-2">Zeichen aus der Liste in die Skizze ziehen oder antippen und dann in die Skizze tippen. Zum Drehen und Vergrößern die Griffe am gewählten Zeichen ziehen.</p>
+				<p class="hinweis mb-2">
+					Zeichen aus der Liste in die Skizze ziehen oder antippen und dann in die Skizze tippen. Zum Drehen und Vergrößern die Griffe am gewählten Zeichen ziehen,
+					bei Kran und Drehleiter dreht der orange Griff den Ausleger.
+				</p>
 			{/if}
 			<div
 				class="zeichenflaeche"
@@ -374,6 +488,10 @@
 						<line x1={griffe.oben.x} y1={griffe.oben.y} x2={griffe.drehen.x} y2={griffe.drehen.y} stroke="#1f5fa8" stroke-width="2" pointer-events="none" />
 						<circle data-griff="drehen" cx={griffe.drehen.x} cy={griffe.drehen.y} r="11" fill="#fff" stroke="#1f5fa8" stroke-width="3" class="cursor-grab" />
 						<rect data-griff="groesse" x={griffe.groesse.x - 10} y={griffe.groesse.y - 10} width="20" height="20" fill="#1f5fa8" stroke="#fff" stroke-width="2" class="cursor-nwse-resize" />
+						{#if griffe.ausleger}
+							<line x1={griffe.ausleger.dreh.x} y1={griffe.ausleger.dreh.y} x2={griffe.ausleger.spitze.x} y2={griffe.ausleger.spitze.y} stroke="#e8710a" stroke-width="2" stroke-dasharray="4 4" pointer-events="none" />
+							<circle data-griff="ausleger" cx={griffe.ausleger.spitze.x} cy={griffe.ausleger.spitze.y} r="10" fill="#e8710a" stroke="#fff" stroke-width="3" class="cursor-grab" />
+						{/if}
 					{/if}
 				</SkizzeSvg>
 			</div>
@@ -383,8 +501,8 @@
 
 {#if ziehen?.bewegt}
 	<!-- Zeichen am Finger beim Ziehen -->
-	<svg viewBox="0 0 48 32" class="pointer-events-none fixed z-50 h-12 w-[4.5rem] -translate-x-1/2 -translate-y-1/2 drop-shadow-lg" style:left="{ziehen.x}px" style:top="{ziehen.y}px" aria-hidden="true">
-		{@html SYMBOL[ziehen.symbol].svg}
+	<svg viewBox={SYMBOL[ziehen.symbol].vb.join(' ')} class="pointer-events-none fixed z-50 h-14 w-20 -translate-x-1/2 -translate-y-1/2 drop-shadow-lg" style:left="{ziehen.x}px" style:top="{ziehen.y}px" aria-hidden="true">
+		{@html zeichnen(SYMBOL[ziehen.symbol])}
 	</svg>
 {/if}
 

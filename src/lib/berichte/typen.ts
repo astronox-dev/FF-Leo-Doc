@@ -202,7 +202,22 @@ export type SkizzenKarte = {
 	ansicht?: { lat: number; lon: number; zoom: number; drehung: number };
 };
 export type SkizzenElement =
-	| { id: string; art: 'symbol'; symbol: string; x: number; y: number; winkel: number; groesse: number; text?: string; auto?: boolean }
+	| {
+			id: string;
+			art: 'symbol';
+			symbol: string;
+			x: number;
+			y: number;
+			winkel: number;
+			groesse: number;
+			/** Beschriftungen je Feld des Zeichens (Funkrufname, Wasser, Strahlrohrgröße …) */
+			felder?: Record<string, string>;
+			/** Stellung des Auslegers (Kran, Leiter) in Grad, relativ zum Fahrzeug */
+			ausleger?: number;
+			/** älterer Stand: Beschriftung der Windrichtung */
+			text?: string;
+			auto?: boolean;
+	  }
 	| { id: string; art: 'text'; x: number; y: number; winkel: number; groesse: number; text: string; farbe: string }
 	| { id: string; art: 'linie'; punkte: number[]; farbe: string; breite: number };
 export type Skizze = { karte: SkizzenKarte | null; elemente: SkizzenElement[] };

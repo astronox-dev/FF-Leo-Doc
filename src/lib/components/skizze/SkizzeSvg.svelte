@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { LEGENDE_ZEILEN, SYMBOL, SYMBOL_B, SYMBOL_H } from '$lib/berichte/legende';
+	import { LEGENDE_ZEILEN, MASS, SYMBOL, kopfueber, zeichnen, type SymbolDef } from '$lib/berichte/legende';
 	import { SKIZZE_B, SKIZZE_H, type Skizze, type SkizzenElement } from '$lib/berichte/typen';
 
 	let {
@@ -22,25 +22,50 @@
 	/** Bereich der gedruckten Legende, rechts oben wie auf dem Aufnahmeblatt */
 	const LEGENDE = { x: 760, y: 0, b: 240 };
 
-	// Legende umbrechen: Zeichen links, Text rechts in höchstens zwei Zeilen
-	const legende = (() => {
-		const zeilen: { ids: string[]; text: string[]; y: number; h: number }[] = [];
+	/**
+	 * Legende: Zeichen links, Text rechts umbrochen. Unter der Legende des Aufnahmeblatts stehen
+	 * die weiteren Zeichen, die in dieser Skizze vorkommen.
+	 */
+	const legende = $derived.by(() => {
+		const imBlatt = new Set(LEGENDE_ZEILEN.flatMap((z) => z.ids));
+		const weitere = [
+			...new Set((skizze?.elemente ?? []).flatMap((e) => (e.art === 'symbol' && SYMBOL[e.symbol] && !imBlatt.has(e.symbol) ? [e.symbol] : [])))
+		];
+		const zeilen: { ids: string[]; text: string[]; y: number; textX: number }[] = [];
 		let y = 44;
-		for (const z of LEGENDE_ZEILEN) {
-			const breite = z.ids.length > 1 ? 24 : 32;
-			const woerter = z.text.split(' ');
+		function zeile(ids: string[], inhalt: string) {
+			const breite = ids.length > 1 ? 34 - ids.length * 3 : 32;
 			const text: string[] = [''];
-			for (const w of woerter) {
+			for (const w of inhalt.split(' ')) {
 				const letzte = text[text.length - 1];
 				if ((letzte + ' ' + w).trim().length > breite && letzte) text.push(w);
 				else text[text.length - 1] = (letzte + ' ' + w).trim();
 			}
-			const h = 12 + text.length * 7.5;
-			zeilen.push({ ids: z.ids, text, y, h });
-			y += h;
+			zeilen.push({ ids, text, y, textX: ids.length > 1 ? 12 + ids.length * 23 : 46 });
+			y += 12 + text.length * 7.5;
 		}
-		return { zeilen, hoehe: y + 6 };
-	})();
+		for (const z of LEGENDE_ZEILEN) zeile(z.ids, z.text);
+		let weitereY: number | null = null;
+		if (weitere.length) {
+			weitereY = y + 12;
+			y += 22;
+			for (const id of weitere) zeile([id], SYMBOL[id].name);
+		}
+		return { zeilen, hoehe: y + 6, weitereY };
+	});
+
+	/** Zeichen in ein Feld der Legende einpassen */
+	function einpassen(id: string, x: number, y: number, w: number, h: number) {
+		const [vx, vy, vw, vh] = SYMBOL[id].vb;
+		const f = Math.min(w / vw, h / vh);
+		return `translate(${x + (w - vw * f) / 2 - vx * f} ${y + (h - vh * f) / 2 - vy * f}) scale(${f})`;
+	}
+
+	/** Beschriftungen; ältere Stände hatten bei der Windrichtung nur `text` */
+	function felderVon(e: Extract<SkizzenElement, { art: 'symbol' }>, d: SymbolDef) {
+		if (e.felder) return e.felder;
+		return e.text && d.felder?.[0] ? { [d.felder[0].key]: e.text } : undefined;
+	}
 
 	const punkte = (p: number[]) => {
 		let s = '';
@@ -137,14 +162,12 @@
 				{#if modus === 'editor'}<rect x={-Math.max(30, e.text.length * 6.5)} y="-16" width={Math.max(60, e.text.length * 13)} height="32" fill="transparent" />{/if}
 			</g>
 		{:else if SYMBOL[e.symbol]}
+			{@const d = SYMBOL[e.symbol]}
 			<g data-id={e.id} transform={transform(e)}>
-				<g transform="translate({-SYMBOL_B / 2} {-SYMBOL_H / 2}) scale({SYMBOL_B / 48})">
-					{@html SYMBOL[e.symbol].svg}
+				<g transform="scale({MASS}) translate({-d.b / 2} {-d.h / 2})">
+					{@html zeichnen(d, { felder: felderVon(e, d), ausleger: e.ausleger, kopf: kopfueber(e.winkel) })}
 				</g>
-				{#if e.symbol === 'wind' && e.text}
-					<text x="0" y="12" text-anchor="middle" font-size="9.5" font-weight="700" fill="#1a1a1a">{e.text}</text>
-				{/if}
-				{#if modus === 'editor'}<rect x={-SYMBOL_B / 2} y={-SYMBOL_H / 2} width={SYMBOL_B} height={SYMBOL_H} fill="transparent" />{/if}
+				{#if modus === 'editor'}<rect x={(-d.b * MASS) / 2} y={(-d.h * MASS) / 2} width={d.b * MASS} height={d.h * MASS} fill="transparent" />{/if}
 			</g>
 		{/if}
 	{/each}
@@ -157,14 +180,17 @@
 			<text x="8" y="29" font-size="10" fill="#333">aus der ÖBFV RL E-27 dar:</text>
 			{#each legende.zeilen as z (z.ids.join())}
 				{#each z.ids as id, i (id)}
-					<g transform="translate({8 + i * 23} {z.y}) scale({(z.ids.length > 1 ? 22 : 30) / 48})">
-						{@html SYMBOL[id].svg}
+					<g transform={z.ids.length > 1 ? einpassen(id, 8 + i * 23, z.y, 22, 15) : einpassen(id, 8, z.y, 30, 20)}>
+						{@html zeichnen(SYMBOL[id])}
 					</g>
 				{/each}
 				{#each z.text as t, j (j)}
-					<text x={z.ids.length > 1 ? 80 : 46} y={z.y + 11 + j * 9} font-size="9.5" fill="#333">{t}</text>
+					<text x={z.textX} y={z.y + 11 + j * 9} font-size="9.5" fill="#333">{t}</text>
 				{/each}
 			{/each}
+			{#if legende.weitereY !== null}
+				<text x="8" y={legende.weitereY} font-size="10" font-weight="700" fill="#333">Weitere Zeichen in dieser Skizze:</text>
+			{/if}
 		</g>
 	{:else}
 		<rect x={LEGENDE.x} y={LEGENDE.y} width={LEGENDE.b} height={legende.hoehe} fill="#ffffff" fill-opacity="0.72" stroke="#9aa0a6" stroke-dasharray="6 5" pointer-events="none" />
