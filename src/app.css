@@ -1,0 +1,341 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/archivo/wdth.css';
+
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+/* ------------------------------------------------------------ Tokens
+   Feuerrot RAL 3000 wie Header und Fahrzeuglack, Uniform-Nachtblau für Schrift.
+   Die vier Berichtsarten tragen die Farben ihrer Papier-Aufnahmeblätter. */
+:root {
+	color-scheme: light;
+	--c-red: #af2b1e;
+	--c-red-deep: #8c2117;
+	--c-red-soft: #f9e9e6;
+	--c-night: #1d2b3a;
+	--c-bg: #f4f5f7;
+	--c-surface: #ffffff;
+	--c-surface-2: #f5f6f8;
+	--c-surface-3: #eef0f2;
+	--c-line: #dde1e6;
+	--c-line-strong: #c4cad2;
+	--c-ink: #1d2b3a;
+	--c-ink-2: #46546a;
+	--c-ink-3: #66727f;
+	--c-ok: #13784a;
+	--c-ok-soft: #e3f3ea;
+	--c-warn: #9a5400;
+	--c-warn-soft: #fdf0dc;
+	--c-danger: #b3261e;
+	--c-danger-soft: #fbe8e6;
+	--c-focus: #1f5fa8;
+	--c-scrim: rgb(16 24 33 / 0.5);
+	--shadow-1: 0 1px 2px rgb(29 43 58 / 0.06), 0 0 0 1px rgb(29 43 58 / 0.04);
+	--shadow-2: 0 10px 30px -12px rgb(29 43 58 / 0.25), 0 2px 6px rgb(29 43 58 / 0.06);
+	--shadow-3: 0 30px 70px -20px rgb(16 24 33 / 0.45), 0 4px 12px rgb(16 24 33 / 0.08);
+
+	/* Berichtsarten (Kopffarbe der Aufnahmeblätter) */
+	--c-typ-brand: #ff5d5d;
+	--c-typ-technik: #8ea9db;
+	--c-typ-schadstoff: #a9d08e;
+	--c-typ-tus: #ffffff;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root:not([data-theme='light']) {
+		color-scheme: dark;
+		--c-red: #e0574a;
+		--c-red-deep: #f07a6e;
+		--c-red-soft: rgb(224 87 74 / 0.14);
+		--c-bg: #11171e;
+		--c-surface: #18202a;
+		--c-surface-2: #1d2631;
+		--c-surface-3: #26303c;
+		--c-line: #2c3643;
+		--c-line-strong: #3d4958;
+		--c-ink: #e9edf2;
+		--c-ink-2: #b4bdc8;
+		--c-ink-3: #8f99a5;
+		--c-ok: #5bc893;
+		--c-ok-soft: rgb(91 200 147 / 0.13);
+		--c-warn: #f1ac55;
+		--c-warn-soft: rgb(241 172 85 / 0.13);
+		--c-danger: #f28b82;
+		--c-danger-soft: rgb(242 139 130 / 0.13);
+		--c-focus: #8ab8f0;
+		--c-scrim: rgb(0 0 0 / 0.6);
+		--shadow-1: 0 0 0 1px rgb(255 255 255 / 0.04);
+		--shadow-2: 0 10px 30px -10px rgb(0 0 0 / 0.6);
+		--shadow-3: 0 30px 70px -20px rgb(0 0 0 / 0.75);
+	}
+}
+
+:root[data-theme='dark'] {
+	color-scheme: dark;
+	--c-red: #e0574a;
+	--c-red-deep: #f07a6e;
+	--c-red-soft: rgb(224 87 74 / 0.14);
+	--c-bg: #11171e;
+	--c-surface: #18202a;
+	--c-surface-2: #1d2631;
+	--c-surface-3: #26303c;
+	--c-line: #2c3643;
+	--c-line-strong: #3d4958;
+	--c-ink: #e9edf2;
+	--c-ink-2: #b4bdc8;
+	--c-ink-3: #8f99a5;
+	--c-ok: #5bc893;
+	--c-ok-soft: rgb(91 200 147 / 0.13);
+	--c-warn: #f1ac55;
+	--c-warn-soft: rgb(241 172 85 / 0.13);
+	--c-danger: #f28b82;
+	--c-danger-soft: rgb(242 139 130 / 0.13);
+	--c-focus: #8ab8f0;
+	--c-scrim: rgb(0 0 0 / 0.6);
+	--shadow-1: 0 0 0 1px rgb(255 255 255 / 0.04);
+	--shadow-2: 0 10px 30px -10px rgb(0 0 0 / 0.6);
+	--shadow-3: 0 30px 70px -20px rgb(0 0 0 / 0.75);
+}
+
+@theme {
+	--font-sans: 'Archivo Variable', ui-sans-serif, system-ui, 'Segoe UI', sans-serif;
+
+	--color-red: var(--c-red);
+	--color-red-deep: var(--c-red-deep);
+	--color-red-soft: var(--c-red-soft);
+	--color-night: var(--c-night);
+	--color-bg: var(--c-bg);
+	--color-surface: var(--c-surface);
+	--color-surface-2: var(--c-surface-2);
+	--color-surface-3: var(--c-surface-3);
+	--color-line: var(--c-line);
+	--color-line-strong: var(--c-line-strong);
+	--color-ink: var(--c-ink);
+	--color-ink-2: var(--c-ink-2);
+	--color-ink-3: var(--c-ink-3);
+	--color-ok: var(--c-ok);
+	--color-ok-soft: var(--c-ok-soft);
+	--color-warn: var(--c-warn);
+	--color-warn-soft: var(--c-warn-soft);
+	--color-danger: var(--c-danger);
+	--color-danger-soft: var(--c-danger-soft);
+
+	--radius-card: 14px;
+	--radius-field: 9px;
+
+	--ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ------------------------------------------------------------ Basis */
+
+@layer base {
+	html {
+		-webkit-text-size-adjust: 100%;
+		scroll-padding-top: 6rem;
+	}
+	body {
+		background: var(--c-bg);
+		color: var(--c-ink);
+		font-family: var(--font-sans);
+		font-size: 1rem;
+		line-height: 1.5;
+		-webkit-font-smoothing: antialiased;
+	}
+	:focus-visible {
+		outline: 2.5px solid var(--c-focus);
+		outline-offset: 2px;
+		border-radius: 4px;
+	}
+	::selection {
+		background: var(--c-red);
+		color: #fff;
+	}
+	button,
+	[role='button'],
+	label:has(> input[type='checkbox']) {
+		cursor: pointer;
+	}
+	button:disabled {
+		cursor: not-allowed;
+	}
+}
+
+@utility display {
+	font-stretch: 70%;
+	font-weight: 800;
+	line-height: 0.95;
+	letter-spacing: -0.005em;
+	text-wrap: balance;
+}
+@utility condensed {
+	font-stretch: 80%;
+}
+@utility tabular {
+	font-variant-numeric: tabular-nums;
+}
+@utility wrap {
+	width: 100%;
+	max-width: 80rem;
+	margin-inline: auto;
+	padding-inline: 1rem;
+	@media (min-width: 640px) {
+		padding-inline: 1.5rem;
+	}
+}
+
+/* ------------------------------------------------------------ Bausteine */
+
+@layer components {
+	.card {
+		background: var(--c-surface);
+		border-radius: var(--radius-card);
+		box-shadow: var(--shadow-1);
+	}
+	.field-label {
+		display: block;
+		margin-bottom: 0.3rem;
+		font-size: 0.9375rem;
+		font-weight: 600;
+		color: var(--c-ink);
+	}
+	.input {
+		width: 100%;
+		min-height: 2.875rem;
+		padding: 0.55rem 0.8rem;
+		border: 1.5px solid var(--c-line-strong);
+		border-radius: var(--radius-field);
+		background: var(--c-surface);
+		color: var(--c-ink);
+		font-size: 1rem;
+		transition: border-color 120ms;
+	}
+	.input:focus {
+		outline: none;
+		border-color: var(--c-focus);
+		box-shadow: 0 0 0 3px color-mix(in srgb, var(--c-focus) 22%, transparent);
+	}
+	.input[aria-invalid='true'] {
+		border-color: var(--c-danger);
+	}
+	textarea.input {
+		min-height: 6rem;
+		line-height: 1.5;
+		resize: vertical;
+	}
+	.btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		min-height: 2.75rem;
+		padding: 0.55rem 1.1rem;
+		border: 1.5px solid var(--c-line-strong);
+		border-radius: var(--radius-field);
+		background: var(--c-surface);
+		color: var(--c-ink);
+		font-weight: 650;
+		line-height: 1.2;
+		text-decoration: none;
+		white-space: nowrap;
+		transition:
+			background-color 120ms,
+			border-color 120ms,
+			transform 80ms;
+	}
+	.btn:hover {
+		border-color: var(--c-ink-3);
+	}
+	.btn:active {
+		transform: translateY(1px);
+	}
+	.btn:disabled {
+		opacity: 0.55;
+	}
+	.btn-primary {
+		background: var(--c-red);
+		border-color: var(--c-red);
+		color: #fff;
+	}
+	.btn-primary:hover {
+		background: var(--c-red-deep);
+		border-color: var(--c-red-deep);
+	}
+	:root[data-theme='dark'] .btn-primary {
+		color: #1b0d0b;
+	}
+	.btn-ruhig {
+		border-color: transparent;
+		background: transparent;
+	}
+	.btn-ruhig:hover {
+		background: var(--c-surface-3);
+		border-color: transparent;
+	}
+	.btn-gefahr {
+		border-color: transparent;
+		background: transparent;
+		color: var(--c-danger);
+	}
+	.btn-gefahr:hover {
+		background: var(--c-danger-soft);
+		border-color: transparent;
+	}
+	.hinweis {
+		color: var(--c-ink-2);
+		font-size: 0.9375rem;
+	}
+	/* Ankreuzfelder wie auf dem Papierformular, aber fingerfreundlich */
+	.kreuz {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.55rem;
+		min-height: 2.5rem;
+		padding: 0.35rem 0.8rem 0.35rem 0.55rem;
+		border: 1.5px solid var(--c-line);
+		border-radius: 999px;
+		background: var(--c-surface);
+		font-size: 0.9375rem;
+		font-weight: 550;
+		user-select: none;
+		transition:
+			background-color 120ms,
+			border-color 120ms;
+	}
+	.kreuz input {
+		width: 1.15rem;
+		height: 1.15rem;
+		accent-color: var(--c-red);
+	}
+	.kreuz:has(input:checked) {
+		border-color: var(--c-red);
+		background: var(--c-red-soft);
+	}
+	.kreuz:has(input:focus-visible) {
+		outline: 2.5px solid var(--c-focus);
+		outline-offset: 2px;
+	}
+}
+
+/* ------------------------------------------------------------ Druck */
+
+@page {
+	size: A4;
+	margin: 0;
+}
+@media print {
+	body {
+		background: #fff !important;
+	}
+}
+
+/* ------------------------------------------------------------ Bewegung */
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+		scroll-behavior: auto !important;
+	}
+}

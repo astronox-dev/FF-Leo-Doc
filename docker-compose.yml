@@ -1,0 +1,20 @@
+# Für Portainer als Stack einfügen oder lokal mit `docker compose up -d --build` starten.
+services:
+  ff-leo-doc:
+    build: .
+    container_name: ff-leo-doc
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    environment:
+      # Öffentliche Adresse, z. B. https://doc.ff-leopoldsdorf.net (für Formulare und Cookies)
+      ORIGIN: ${ORIGIN:-http://localhost:3000}
+      # Nur beim allerersten Start: Passwort für das Konto „admin“ (sonst steht ein Einmal-Passwort im Log)
+      ADMIN_PASSWORT: ${ADMIN_PASSWORT:-}
+      # Hinter Cloudflare Tunnel die echte Besucher-IP verwenden (für die Sperre bei Fehlversuchen)
+      ADDRESS_HEADER: ${ADDRESS_HEADER:-}
+    volumes:
+      - ff-leo-doc-daten:/data
+
+volumes:
+  ff-leo-doc-daten:

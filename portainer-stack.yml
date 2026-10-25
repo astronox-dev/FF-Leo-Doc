@@ -1,0 +1,56 @@
+# FF-Leo Doc (Einsatzberichte und Atemschutzüberwachung der FF Leopoldsdorf) – Stack für Portainer
+#
+# Einmalig vorbereiten: Das Image ist privat, weil es die Mannschaftsliste enthält.
+#   Portainer → Registries → Add registry → GitHub (ghcr.io)
+#   Benutzer: mstreicher98, Passwort: Personal Access Token (classic) mit dem Recht „read:packages“
+#
+# Stack anlegen: Portainer → Stacks → Add stack → Web editor: diesen Inhalt einfügen, darunter bei
+# „Environment variables“ setzen:
+#   DOMAIN          Adresse ohne https://, genau wie im Tunnel eingetragen (z. B. doc.ff-leopoldsdorf.net)
+#   ADMIN_PASSWORT  optional, nur beim allerersten Start: Passwort für das Konto „admin“.
+#                   Leer lassen: ein Einmal-Passwort steht im Log des Containers.
+#   APP_PORT        optional, Port am Server (Standard 3001, damit er nicht mit der Webseite auf 3000 kollidiert)
+#   TUNNEL_TOKEN    nur für Variante B
+#
+# HTTPS übernimmt Cloudflare. Im Cloudflare-Dashboard unter Zero Trust → Networks → Tunnels
+# → Public Hostname die Domain auf die App zeigen lassen (Typ HTTP):
+#   Variante A – cloudflared läuft schon am Server:  <IP des Servers>:3001
+#   Variante B – cloudflared aus diesem Stack (unten einkommentieren):  app:3000
+#
+# Neue Version einspielen: Stack → Editor → „Update the stack“ mit „Re-pull image and redeploy“.
+# Zugang verloren: Container → Console (/bin/sh) → node scripts/zugang.mjs admin
+
+services:
+  app:
+    image: ghcr.io/mstreicher98/ff-leo-doc:latest
+    restart: unless-stopped
+    environment:
+      ORIGIN: https://${DOMAIN}
+      # Echte Besucher-IP schickt Cloudflare in diesem Header mit (Sperre bei falschen Passwörtern)
+      ADDRESS_HEADER: CF-Connecting-IP
+      ADMIN_PASSWORT: ${ADMIN_PASSWORT:-}
+    volumes:
+      # Datenbank mit allen Berichten und Atemschutz-Protokollen. Beim Entfernen des Stacks das Volume NICHT mitlöschen.
+      - ff-leo-doc-daten:/data
+    # Chromium für die PDF-Erstellung braucht etwas mehr gemeinsamen Speicher
+    shm_size: 256m
+    # Für Variante A: cloudflared erreicht die App über diesen Port.
+    # Den Port im Router nicht nach außen freigeben – der Zugang läuft nur über den Tunnel.
+    ports:
+      - '${APP_PORT:-3001}:3000'
+
+  # Variante B: Tunnel direkt in diesem Stack. Zum Aktivieren die Zeilen unten einkommentieren
+  # und TUNNEL_TOKEN setzen (Zero Trust → Networks → Tunnels → Tunnel anlegen → Token kopieren).
+  # Die Zeilen „ports“ oben können dann entfallen.
+  #
+  # cloudflared:
+  #   image: cloudflare/cloudflared:latest
+  #   restart: unless-stopped
+  #   command: tunnel --no-autoupdate run
+  #   environment:
+  #     TUNNEL_TOKEN: ${TUNNEL_TOKEN}
+  #   depends_on:
+  #     - app
+
+volumes:
+  ff-leo-doc-daten:

@@ -1,0 +1,97 @@
+# FF-Leo Doc
+
+**Feuerwehr Leopoldsdorf Dokumentation:** Einsatzberichte digital ausfüllen, unterschreiben und einreichen, dazu die Atemschutzüberwachung für mehrere Geräte gleichzeitig.
+
+## Bereiche
+
+### Anmeldung und Berechtigungen
+- Ohne Anmeldung ist nichts erreichbar. Konten legt ein Admin an, es gibt keine Selbstregistrierung.
+- Zwei Berechtigungen: **Nutzer** (Berichte, Atemschutz) und **Admin** (zusätzlich Benutzer, Mannschaft, Einstellungen, eingereichte Berichte).
+- Sitzungen laufen nie ab, damit im Einsatz niemand neu anmelden muss. Sie enden nur durch „Abmelden“, durch Sperren des Kontos oder durch ein neues Passwort.
+- Neue Konten und zurückgesetzte Passwörter bekommen ein Einmal-Passwort. Beim ersten Anmelden muss ein eigenes gesetzt werden.
+
+### Einsatzberichte
+- Vier Aufnahmeblätter wie auf Papier (Stand April 2026), mit der Kopffarbe des Originals:
+  - **Brandeinsatz** (rot)
+  - **Technischer Einsatz** (blau)
+  - **Schadstoffeinsatz** (grün)
+  - **TUS-Brandeinsatz** (weiß)
+- Alle Felder digital ausfüllbar; Ankreuzfelder erlauben immer Mehrfachauswahl.
+- Teilnahmeliste aus der Mannschaft: Anwesend, Fahrzeug, Maschinist, ATS.
+- **Skizze** (Brand, Technik, Schadstoff):
+  - Kartenausschnitt auf basemap.at wählen, mit Adresssuche und Luftbild.
+  - Gebäude, Straßen, Gewässer und Bahn werden aus OpenStreetMap als Strichzeichnung ins Skizzenfeld übernommen.
+  - Darauf die taktischen Zeichen der Legende (ÖBFV RL E-27) per Drag-and-drop setzen, drehen und vergrößern; dazu Stift und Text.
+- Vorschau, Drucken und PDF-Download im Layout des Originals. Zugeordnete Atemschutzprotokolle werden angehängt, weitere Geschädigte bekommen ein Sonderblatt.
+- **Einreichen** mit Standesbuchnummer und Unterschrift von Ausfüllendem und Einsatzleiter. Danach ist der Bericht nicht mehr änderbar und nur noch für Admins im Archiv sichtbar. Ein Admin kann ihn bei Bedarf wieder öffnen.
+- Alle Angemeldeten können offene Berichte bearbeiten. Es wird automatisch gespeichert, und gleichzeitige Änderungen von zwei Geräten werden erkannt.
+
+### Atemschutzüberwachung
+- Überwachung anlegen (Datum, Adresse, optional Einsatzstufe und Einsatzbericht). Die Standard-Trupps stehen danach bereit.
+- Andere Geräte treten mit dem 6-stelligen Code bei. Alle Änderungen erscheinen sofort überall (Server-Sent Events).
+- Status je Trupp:
+  - Einsatzbereit (grün)
+  - Im Einsatz (blau)
+  - Zurück (rot)
+  - Nicht einsatzbereit (orange)
+- Zeitgrenze mit Vorwarnung und Alarm, Notfall-Knopf.
+- Bei Funkloch arbeitet das Gerät weiter, Änderungen werden nachgeschickt.
+- Protokoll mit CSV-Export und Druck. Zuordnung zu einem Einsatzbericht, dessen PDF das Protokoll dann enthält.
+
+### Admin
+- Benutzer
+- Mannschaft (Teilnahmeliste, inklusive „Stand“)
+- Atemschutz-Einstellungen: Zeitgrenze, Vorwarnung, Standard-Trupps
+- Eingereichte Berichte
+
+## Technik
+
+- SvelteKit 2 / Svelte 5, Tailwind 4, SQLite über libsql und Drizzle (wie die FF-Webseite)
+- Berichte werden als JSON pro Bericht gespeichert; die Felder aller vier Blätter sind in `src/lib/berichte/typen.ts` beschrieben, die Legende in `src/lib/berichte/legende.ts`.
+- Die Atemschutzüberwachung speichert jede Aktion als Ereignis. Browser und Server berechnen den Zustand daraus mit `src/lib/asue/kern.ts`.
+- PDF: ein kopfloses Chromium (lokal Edge oder Chrome) druckt die Druckansicht, daher ist das PDF identisch mit der Vorschau.
+- Karten: basemap.at (Kacheln), Nominatim (Adresssuche), Overpass-API (Gebäude und Straßen, © OpenStreetMap-Mitwirkende).
+
+## Entwicklung
+
+```
+npm install
+npm run dev
+```
+
+Läuft auf http://localhost:5240. Beim ersten Start wird das Konto `admin` angelegt. Das Passwort steht in `.env` (`ADMIN_PASSWORT`); ohne diesen Eintrag wird ein Einmal-Passwort ins Log geschrieben. Die Datenbank liegt in `data/` und wird nicht eingecheckt.
+
+Datenbank-Änderungen: Schema in `src/lib/server/db/schema.ts` anpassen, dann `npm run db:generate`. Die Migrationen laufen beim Start automatisch.
+
+## Betrieb (Docker / Portainer)
+
+Jeder Push auf `main` baut über GitHub Actions das Image `ghcr.io/mstreicher98/ff-leo-doc:latest` (amd64 und arm64). Das Repository und das Image sind privat, weil die Mannschaftsliste darin steckt.
+
+Am Server läuft die App als Portainer-Stack hinter einem Cloudflare Tunnel, ohne offene Ports. Die Anleitung steht oben in `portainer-stack.yml`:
+
+1. In Portainer die Registry `ghcr.io` mit einem GitHub-Token (Recht `read:packages`) anlegen.
+2. Stack anlegen, Inhalt von `portainer-stack.yml` einfügen, `DOMAIN` (und beim ersten Start `ADMIN_PASSWORT`) setzen.
+3. Im Cloudflare-Tunnel die Domain auf `<Server>:3001` (oder `app:3000` mit cloudflared im Stack) zeigen lassen.
+4. Updates: Stack → „Update the stack“ mit „Re-pull image and redeploy“.
+
+Lokal ohne Registry geht es mit `docker compose up -d --build` (baut aus dem Quellcode).
+
+Wichtige Umgebungsvariablen:
+
+| Variable | Zweck |
+| --- | --- |
+| `ORIGIN` | Öffentliche Adresse, z. B. `https://doc.ff-leopoldsdorf.net` |
+| `ADMIN_PASSWORT` | Nur beim allerersten Start: Passwort für `admin` |
+| `ADDRESS_HEADER` | Hinter Cloudflare Tunnel `CF-Connecting-IP` |
+| `DATA_DIR` | Datenordner, im Container `/data` (Volume sichern!) |
+| `CHROME_PATH` | Browser für PDFs, im Container schon gesetzt |
+
+Das Image enthält Chromium und die Schrift Liberation Sans (Arial-kompatibel) für die PDFs.
+
+Zugang verloren? In Portainer beim Container „Console“ öffnen (`/bin/sh`) und ein neues Einmal-Passwort setzen:
+
+```
+node scripts/zugang.mjs admin
+```
+
+Mit `docker compose` lokal: `docker exec -it ff-leo-doc node scripts/zugang.mjs admin`.
