@@ -40,7 +40,7 @@
 
 ### Admin
 - Benutzer
-- Mannschaft (Teilnahmeliste, inklusive „Stand“)
+- Mannschaft (Teilnahmeliste, inklusive „Stand“), Import und Export als CSV
 - Atemschutz-Einstellungen: Zeitgrenze, Vorwarnung, Standard-Trupps
 - Eingereichte Berichte
 
@@ -65,14 +65,16 @@ Datenbank-Änderungen: Schema in `src/lib/server/db/schema.ts` anpassen, dann `n
 
 ## Betrieb (Docker / Portainer)
 
-Jeder Push auf `main` baut über GitHub Actions das Image `ghcr.io/mstreicher98/ff-leo-doc:latest` (amd64 und arm64). Das Repository und das Image sind privat, weil die Mannschaftsliste darin steckt.
+Jeder Push auf `main` baut über GitHub Actions das Image `ghcr.io/mstreicher98/ff-leo-doc:latest` (amd64 und arm64). Das Repository ist privat, das Image öffentlich: Es enthält keine personenbezogenen Daten. Die Mannschaftsliste liegt nur in der Datenbank und wird im Admin-Bereich importiert.
 
 Am Server läuft die App als Portainer-Stack hinter einem Cloudflare Tunnel, ohne offene Ports. Die Anleitung steht oben in `portainer-stack.yml`:
 
-1. In Portainer die Registry `ghcr.io` mit einem GitHub-Token (Recht `read:packages`) anlegen.
-2. Stack anlegen, Inhalt von `portainer-stack.yml` einfügen, `DOMAIN` (und beim ersten Start `ADMIN_PASSWORT`) setzen.
-3. Im Cloudflare-Tunnel die Domain auf `<Server>:3001` (oder `app:3000` mit cloudflared im Stack) zeigen lassen.
+1. Stack anlegen, Inhalt von `portainer-stack.yml` einfügen, `DOMAIN` (und beim ersten Start `ADMIN_PASSWORT`) setzen.
+2. Im Cloudflare-Tunnel die Domain auf `<Server>:3001` (oder `app:3000` mit cloudflared im Stack) zeigen lassen.
+3. Als Admin anmelden, unter Admin → Mannschaft die Teilnahmeliste importieren (CSV: `Stbnr;Nachname;Vorname;Gruppe`, Gruppe `aktiv` oder `reserve`). „Als Datei herunterladen“ liefert dasselbe Format zum Sichern.
 4. Updates: Stack → „Update the stack“ mit „Re-pull image and redeploy“.
+
+Keine Namen oder Standesbuchnummern in den Code schreiben: Alles im Repository landet im öffentlichen Image.
 
 Lokal ohne Registry geht es mit `docker compose up -d --build` (baut aus dem Quellcode).
 

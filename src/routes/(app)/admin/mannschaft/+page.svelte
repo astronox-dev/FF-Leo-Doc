@@ -3,6 +3,8 @@
 	import Search from '@lucide/svelte/icons/search';
 	import CircleAlert from '@lucide/svelte/icons/circle-alert';
 	import CircleCheck from '@lucide/svelte/icons/circle-check';
+	import Upload from '@lucide/svelte/icons/upload';
+	import Download from '@lucide/svelte/icons/download';
 	import { pageTitle } from '$lib/app';
 
 	let { data, form } = $props();
@@ -36,13 +38,21 @@
 				<h2 id="liste" class="text-lg font-bold">Teilnahmeliste</h2>
 				<p class="hinweis">{anzahl.aktiv} aktiv, {anzahl.reserve} Reserve. Ausgeblendete Mitglieder stehen nicht auf neuen Berichten.</p>
 			</div>
+			{#if data.liste.length}
+				<a href="/admin/mannschaft/export" class="btn" download><Download size={18} aria-hidden="true" />Als Datei herunterladen</a>
+			{/if}
 			<label class="relative w-full sm:w-64">
 				<span class="sr-only">Suchen</span>
 				<Search size={18} class="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-ink-3" aria-hidden="true" />
 				<input class="input pl-10" type="search" placeholder="Name oder Stbnr." bind:value={suche} />
 			</label>
 		</div>
-		<div class="mt-3 overflow-hidden card">
+		{#if data.liste.length === 0}
+			<p class="mt-3 rounded-xl border border-dashed border-line-strong px-4 py-6 text-center text-ink-2">
+				Noch keine Mannschaft eingetragen. Rechts die Liste als Datei importieren oder einzelne Mitglieder hinzufügen.
+			</p>
+		{/if}
+		<div class="mt-3 overflow-hidden card" class:hidden={data.liste.length === 0}>
 			<table class="w-full text-left text-[0.9375rem]">
 				<thead class="bg-surface-2 text-sm text-ink-2"><tr><th class="px-4 py-2">Stbnr.</th><th class="px-4 py-2">Name</th><th class="px-4 py-2">Gruppe</th><th class="px-4 py-2"></th></tr></thead>
 				<tbody>
@@ -77,6 +87,21 @@
 	</section>
 
 	<div class="space-y-6">
+		<form method="POST" action="?/importieren" enctype="multipart/form-data" use:enhance class="card space-y-4 p-5">
+			<h2 class="text-lg font-bold">Liste importieren</h2>
+			<p class="hinweis">
+				Eine Zeile je Mitglied: Stbnr; Nachname; Vorname; Gruppe (aktiv oder reserve). Neue Nummern werden eingetragen, bekannte aktualisiert, gelöscht wird nichts.
+			</p>
+			<label class="block">
+				<span class="field-label">Datei (CSV aus Excel)</span>
+				<input class="input py-2" type="file" name="datei" accept=".csv,.txt,text/csv,text/plain" />
+			</label>
+			<label class="block">
+				<span class="field-label">Oder Zeilen einfügen</span>
+				<textarea class="input font-mono text-sm" name="text" rows="4" placeholder="253;Muster;Max;aktiv"></textarea>
+			</label>
+			<button class="btn btn-primary w-full"><Upload size={18} aria-hidden="true" />Importieren</button>
+		</form>
 		<form method="POST" action="?/anlegen" use:enhance class="card space-y-4 p-5">
 			<h2 class="text-lg font-bold">Mitglied hinzufügen</h2>
 			<label class="block"><span class="field-label">Standesbuchnummer</span><input class="input" name="stbnr" inputmode="numeric" required /></label>

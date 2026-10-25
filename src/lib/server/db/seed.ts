@@ -1,23 +1,14 @@
 import { count } from 'drizzle-orm';
 import { env } from '$env/dynamic/private';
 import { db } from './index';
-import { mannschaft, users } from './schema';
+import { users } from './schema';
 import { generatePassword, hashPassword } from '../auth';
 
-/** Teilnahmeliste aus den Aufnahmeblättern, Stand April 2026: [Stbnr, Nachname, Vorname] */
-const AKTIV: [number, string, string][] = [];
-const RESERVE: [number, string, string][] = [];
-
-/** Beim ersten Start: Mannschaft eintragen und ein Admin-Konto anlegen */
+/**
+ * Beim ersten Start ein Admin-Konto anlegen.
+ * Die Mannschaft steht bewusst nicht im Code (das Image ist öffentlich): sie wird im Admin-Bereich importiert.
+ */
 export async function bootstrap() {
-	const [{ n: mitglieder }] = await db.select({ n: count() }).from(mannschaft);
-	if (mitglieder === 0) {
-		await db.insert(mannschaft).values([
-			...AKTIV.map(([stbnr, nachname, vorname]) => ({ stbnr, nachname, vorname, gruppe: 'aktiv' as const })),
-			...RESERVE.map(([stbnr, nachname, vorname]) => ({ stbnr, nachname, vorname, gruppe: 'reserve' as const }))
-		]);
-	}
-
 	const [{ n: konten }] = await db.select({ n: count() }).from(users);
 	if (konten === 0) {
 		const passwort = env.ADMIN_PASSWORT || generatePassword();

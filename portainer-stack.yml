@@ -1,8 +1,7 @@
 # FF-Leo Doc (Einsatzberichte und Atemschutzüberwachung der FF Leopoldsdorf) – Stack für Portainer
 #
-# Einmalig vorbereiten: Das Image ist privat, weil es die Mannschaftsliste enthält.
-#   Portainer → Registries → Add registry → GitHub (ghcr.io)
-#   Benutzer: mstreicher98, Passwort: Personal Access Token (classic) mit dem Recht „read:packages“
+# Das Image ist öffentlich und enthält keine Mannschaftsliste; Zugangsdaten für ghcr.io braucht es nicht.
+# Nach dem ersten Start: Admin → Mannschaft → „Liste importieren“ (CSV mit Stbnr; Nachname; Vorname; Gruppe).
 #
 # Stack anlegen: Portainer → Stacks → Add stack → Web editor: diesen Inhalt einfügen, darunter bei
 # „Environment variables“ setzen:
