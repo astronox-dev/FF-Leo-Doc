@@ -219,7 +219,9 @@ export type SkizzenElement =
 			auto?: boolean;
 	  }
 	| { id: string; art: 'text'; x: number; y: number; winkel: number; groesse: number; text: string; farbe: string }
-	| { id: string; art: 'linie'; punkte: number[]; farbe: string; breite: number };
+	| { id: string; art: 'linie'; punkte: number[]; farbe: string; breite: number }
+	/** Schlauchleitung zwischen zwei Punkten, dazwischen beliebig viele Knickpunkte */
+	| { id: string; art: 'schlauch'; punkte: number[]; groesse?: string };
 export type Skizze = { karte: SkizzenKarte | null; elemente: SkizzenElement[] };
 
 const zp = (): Zeitpunkt => ({ datum: '', zeit: '' });

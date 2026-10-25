@@ -1,17 +1,21 @@
 <script lang="ts">
 	import { LEGENDE_ZEILEN, MASS, SYMBOL, kopfueber, zeichnen, type SymbolDef } from '$lib/berichte/legende';
+	import { schlauchEnden, schlauchMitte, schlauchPfad } from '$lib/berichte/schlauch';
 	import { SKIZZE_B, SKIZZE_H, type Skizze, type SkizzenElement } from '$lib/berichte/typen';
 
 	let {
 		skizze,
 		modus = 'druck',
 		auswahl = null,
+		ansicht = null,
 		svg = $bindable(),
 		children
 	}: {
 		skizze: Skizze | null;
 		modus?: 'druck' | 'editor';
 		auswahl?: string | null;
+		/** Sichtbarer Ausschnitt beim Zoomen, sonst die ganze Skizze */
+		ansicht?: { x: number; y: number; w: number; h: number } | null;
 		svg?: SVGSVGElement;
 		children?: import('svelte').Snippet;
 	} = $props();
@@ -80,7 +84,7 @@
 
 <svg
 	bind:this={svg}
-	viewBox="0 0 {SKIZZE_B} {SKIZZE_H}"
+	viewBox={ansicht ? `${ansicht.x} ${ansicht.y} ${ansicht.w} ${ansicht.h}` : `0 0 ${SKIZZE_B} ${SKIZZE_H}`}
 	xmlns="http://www.w3.org/2000/svg"
 	class="block h-auto w-full select-none"
 	font-family="Arial, Helvetica, sans-serif"
@@ -154,6 +158,34 @@
 				{/if}
 				{#if auswahl === e.id}
 					<polyline points={punkte(e.punkte)} fill="none" stroke="#1f5fa8" stroke-width={e.breite + 6} stroke-opacity="0.35" stroke-linecap="round" />
+				{/if}
+			</g>
+		{:else if e.art === 'schlauch'}
+			{@const pfad = schlauchPfad(e.punkte)}
+			<g data-id={e.id}>
+				{#if auswahl === e.id}
+					<path d={pfad} fill="none" stroke="#1f5fa8" stroke-width="10" stroke-opacity="0.3" stroke-linecap="round" />
+				{/if}
+				<path d={pfad} fill="none" stroke="#1a1a1a" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" />
+				<path d={schlauchEnden(e.punkte)} fill="none" stroke="#1a1a1a" stroke-width="2.6" stroke-linecap="round" />
+				{#if e.groesse}
+					{@const m = schlauchMitte(e.punkte)}
+					<!-- Größe (B oder C) mittig neben der Leitung, immer lesbar -->
+					<text
+						transform="translate({m.x} {m.y}) rotate({m.winkel}) translate(0 -11)"
+						text-anchor="middle"
+						dominant-baseline="central"
+						font-size="17"
+						font-weight="700"
+						fill="#1a1a1a"
+						paint-order="stroke"
+						stroke="#fff"
+						stroke-width="4">{e.groesse}</text
+					>
+				{/if}
+				{#if modus === 'editor'}
+					<!-- breiter unsichtbarer Streifen zum Antippen und Biegen -->
+					<path d={pfad} fill="none" stroke="transparent" stroke-width="20" stroke-linecap="round" />
 				{/if}
 			</g>
 		{:else if e.art === 'text'}
