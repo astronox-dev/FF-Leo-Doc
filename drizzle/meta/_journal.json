@@ -8,6 +8,13 @@
       "when": 1792890569014,
       "tag": "0000_init",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1792975532184,
+      "tag": "0001_einsatztagebuch",
+      "breakpoints": true
     }
   ]
 }

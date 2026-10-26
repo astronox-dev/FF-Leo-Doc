@@ -17,7 +17,7 @@ export const GET: RequestHandler = async ({ params, locals, url }) => {
 	const basis = env.INTERNAL_URL || (dev ? url.origin : `http://127.0.0.1:${env.PORT || 3000}`);
 	let pdf: Uint8Array;
 	try {
-		pdf = await seiteAlsPdf(`${basis}/berichte/${id}/druck?zugang=${encodeURIComponent(druckToken(id))}`);
+		pdf = await seiteAlsPdf(`${basis}/berichte/${id}/druck?zugang=${encodeURIComponent(druckToken(`bericht:${id}`))}`);
 	} catch (e) {
 		console.error('PDF-Erstellung fehlgeschlagen', e);
 		error(500, 'Das PDF konnte nicht erstellt werden.');

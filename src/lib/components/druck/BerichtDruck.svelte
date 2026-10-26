@@ -7,6 +7,8 @@
 		type BerichtDaten, type BerichtTyp, type MitgliedKurz, type Zelle
 	} from '$lib/berichte/typen';
 	import type { AsueDruck } from '$lib/asue/druck';
+	import type { Zustand as EtbZustand } from '$lib/etb/kern';
+	import EtbDruck from './EtbDruck.svelte';
 	import { datumAusIso } from '$lib/format';
 
 	let {
@@ -14,9 +16,18 @@
 		daten: d,
 		mannschaft,
 		asue = [],
+		etb = [],
 		fuss = '',
 		stand = ''
-	}: { typ: BerichtTyp; daten: BerichtDaten; mannschaft: MitgliedKurz[]; asue?: AsueDruck[]; fuss?: string; stand?: string } = $props();
+	}: {
+		typ: BerichtTyp;
+		daten: BerichtDaten;
+		mannschaft: MitgliedKurz[];
+		asue?: AsueDruck[];
+		etb?: { code: string; zustand: EtbZustand }[];
+		fuss?: string;
+		stand?: string;
+	} = $props();
 
 	const T = $derived(TYPEN[typ]);
 	const leer = (s: string | undefined | null) => !s || !s.trim();
@@ -385,6 +396,11 @@
 		</div>
 		{#if fuss}<p class="fuss">{fuss}</p>{/if}
 	</section>
+{/each}
+
+<!-- ============================================================ Einsatztagebuch (Querformat) -->
+{#each etb as t (t.code)}
+	<EtbDruck zustand={t.zustand} {fuss} />
 {/each}
 
 <style>

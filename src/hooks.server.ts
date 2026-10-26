@@ -34,8 +34,12 @@ export const handle: Handle = async ({ event, resolve }) => {
 	event.locals.theme = theme === 'light' || theme === 'dark' ? theme : 'system';
 
 	// Druckansicht für die PDF-Erstellung: kurzlebiges Token statt Anmeldung
-	const druck = /^\/berichte\/(\d+)\/druck$/.exec(path);
-	const druckErlaubt = !!druck && druckTokenGueltig(Number(druck[1]), event.url.searchParams.get('zugang'));
+	const zugang = event.url.searchParams.get('zugang');
+	const druckBericht = /^\/berichte\/(\d+)\/druck$/.exec(path);
+	const druckEtb = /^\/einsatztagebuch\/([A-Z0-9]{6})\/druck$/.exec(path);
+	const druckErlaubt =
+		(!!druckBericht && druckTokenGueltig(`bericht:${Number(druckBericht[1])}`, zugang)) ||
+		(!!druckEtb && druckTokenGueltig(`etb:${druckEtb[1]}`, zugang));
 
 	if (!event.locals.user && !druckErlaubt && !matches(path, OFFEN)) {
 		if (path.startsWith('/api/')) return json({ message: 'Nicht angemeldet' }, { status: 401 });

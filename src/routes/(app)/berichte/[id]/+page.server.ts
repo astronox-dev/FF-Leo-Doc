@@ -4,6 +4,7 @@ import { db } from '$lib/server/db';
 import { berichte } from '$lib/server/db/schema';
 import { asueFuerBericht, berichtLaden, mannschaftFuer } from '$lib/server/berichte';
 import { asueEinstellungen } from '$lib/server/einstellungen';
+import { etbFuerBericht } from '$lib/server/etb';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
@@ -14,6 +15,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		bericht,
 		mannschaft: await mannschaftFuer(bericht),
 		asue: await asueFuerBericht(id),
+		etb: await etbFuerBericht(id),
 		// Funkrufnamen der eigenen Fahrzeuge als Vorschläge in der Skizze (wie die Standard-Trupps der ASÜ)
 		funknamen: (await asueEinstellungen()).standardTrupps,
 		darfLoeschen: locals.user!.role === 'admin' || bericht.erstelltVon === locals.user!.id

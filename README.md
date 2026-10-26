@@ -1,6 +1,6 @@
 # FF-Leo Doc
 
-**Feuerwehr Leopoldsdorf Dokumentation:** Einsatzberichte digital ausfüllen, unterschreiben und einreichen, dazu die Atemschutzüberwachung für mehrere Geräte gleichzeitig.
+**Feuerwehr Leopoldsdorf Dokumentation:** Einsatzberichte digital ausfüllen, unterschreiben und einreichen, dazu Atemschutzüberwachung und Einsatztagebuch für mehrere Geräte gleichzeitig.
 
 ## Bereiche
 
@@ -37,6 +37,13 @@
 - Zeitgrenze mit Vorwarnung und Alarm, Notfall-Knopf.
 - Bei Funkloch arbeitet das Gerät weiter, Änderungen werden nachgeschickt.
 - Protokoll mit CSV-Export und Druck. Zuordnung zu einem Einsatzbericht, dessen PDF das Protokoll dann enthält.
+
+### Einsatztagebuch
+- Tagebuch anlegen (Datum, Feuerwehr, Einsatzort, Bearbeiter, optional Einsatzbericht). Andere Geräte schreiben mit dem 6-stelligen Code mit, Einträge erscheinen sofort überall; bei Funkloch werden sie nachgeschickt.
+- Eintrag mit Uhrzeit (läuft mit, bis man sie ändert), An, Von und Inhalt. Laufende Nummern richten sich nach der Reihenfolge am Server und sind auf allen Geräten gleich.
+- Einträge können als **Auftrag** markiert werden. Wer die Erledigung einträgt, wählt den Auftrag aus; „Auftrag unter“ und „Erledigung unter“ füllen sich dann von selbst. Offene Aufträge stehen in einer eigenen Liste.
+- Korrekturen wie auf Papier: Einträge werden durchgestrichen und bleiben sichtbar; Tippfehler lassen sich bis zum Abschluss ausbessern. Häkchen „Kontrolle“ mit dem Kürzel der Person.
+- Druck und PDF im Layout des NÖ-LFV-Formulars (A4 quer, zehn Zeilen je Blatt). Einem Einsatzbericht zugeordnete Tagebücher werden an dessen PDF angehängt.
 
 ### Admin
 - Benutzer

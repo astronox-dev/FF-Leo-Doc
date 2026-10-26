@@ -3,29 +3,15 @@ import { db } from './db';
 import { asueEinsaetze, asueEreignisse, users } from './db/schema';
 import { reduziere, TYPEN, type Ereignis } from '$lib/asue/kern';
 import { asueDruck } from '$lib/asue/druck';
+import { istEreignis, verteilen } from './live';
 import type { SessionUser } from './auth';
 
-export const CODE = /^[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{6}$/;
-const EREIGNIS_ID = /^[a-z0-9]{8,40}$/;
+export { CODE } from './live';
 const TYP_SET = new Set<string>(TYPEN);
+/** Kanal der Live-Verbindungen einer Überwachung */
+export const asueKanal = (code: string) => `asue:${code}`;
 
-export function pruefeEreignis(e: unknown): e is Ereignis {
-	if (!e || typeof e !== 'object') return false;
-	const x = e as Record<string, unknown>;
-	return (
-		typeof x.id === 'string' &&
-		EREIGNIS_ID.test(x.id) &&
-		typeof x.t === 'number' &&
-		Number.isFinite(x.t) &&
-		x.t > 0 &&
-		typeof x.typ === 'string' &&
-		TYP_SET.has(x.typ) &&
-		!!x.daten &&
-		typeof x.daten === 'object' &&
-		!Array.isArray(x.daten) &&
-		JSON.stringify(x.daten).length <= 8000
-	);
-}
+export const pruefeEreignis = (e: unknown): e is Ereignis => istEreignis(e, TYP_SET);
 
 type Zeile = typeof asueEreignisse.$inferSelect & { von: string | null };
 const alsEreignis = (z: Zeile): Ereignis => ({
@@ -55,26 +41,6 @@ export async function ereignisseNach(code: string, nach: number): Promise<Ereign
 /** Liste der Überwachungen für die Startseite */
 export async function einsatzListe() {
 	return db.select().from(asueEinsaetze).orderBy(desc(asueEinsaetze.erstellt)).limit(200);
-}
-
-/* ---------------------------------------------------------------- Live-Verbindungen */
-
-type Zuhoerer = { senden: (text: string) => void };
-const zuhoerer = new Map<string, Set<Zuhoerer>>();
-
-export function abonnieren(code: string, z: Zuhoerer) {
-	if (!zuhoerer.has(code)) zuhoerer.set(code, new Set());
-	zuhoerer.get(code)!.add(z);
-	return () => {
-		zuhoerer.get(code)?.delete(z);
-		if (!zuhoerer.get(code)?.size) zuhoerer.delete(code);
-	};
-}
-
-function verteilen(code: string, ereignisse: Ereignis[]) {
-	for (const z of zuhoerer.get(code) ?? []) {
-		for (const e of ereignisse) z.senden(`id: ${e.seq}\ndata: ${JSON.stringify(e)}\n\n`);
-	}
 }
 
 /* ---------------------------------------------------------------- Speichern */
@@ -111,7 +77,7 @@ export async function ereignisseSpeichern(code: string, liste: Ereignis[], user:
 	if (neu.some((e) => ['einsatz_angelegt', 'einsatz_geaendert', 'einsatz_abgeschlossen', 'einsatz_wiedereroeffnet', 'bericht_zugeordnet'].includes(e.typ))) {
 		await kopfAktualisieren(code);
 	}
-	verteilen(code, neu);
+	verteilen(asueKanal(code), neu);
 	return { status: 200 as const, ereignisse: antwort };
 }
 

@@ -12,6 +12,7 @@
 	import Send from '@lucide/svelte/icons/send';
 	import CircleAlert from '@lucide/svelte/icons/circle-alert';
 	import Timer from '@lucide/svelte/icons/timer';
+	import NotebookPen from '@lucide/svelte/icons/notebook-pen';
 	import TypMarke from '$lib/components/TypMarke.svelte';
 	import Abschnitt from '$lib/components/formular/Abschnitt.svelte';
 	import Zeile from '$lib/components/formular/Zeile.svelte';
@@ -121,7 +122,7 @@
 		}
 	}
 
-	const abschnitte = [
+	const abschnitte = $derived([
 		['alarmierung', 'Alarmierung'],
 		['einsatzort', 'Einsatzort'],
 		['geschaedigte', 'Geschädigte'],
@@ -132,8 +133,10 @@
 		['zeiten', 'Zeiten, Kilometer'],
 		...(TYPEN[typ].skizze ? [['skizze', 'Skizze']] : []),
 		['teilnahme', 'Teilnahme'],
+		...(data.asue.length ? [['asue', 'Atemschutz']] : []),
+		...(data.etb.length ? [['etb', 'Tagebuch']] : []),
 		['abschluss', 'Unterschriften']
-	] as const;
+	] as const);
 </script>
 
 <svelte:head><title>{pageTitle(`${TYPEN[typ].kurz} ${daten.einsatzort}`)}</title></svelte:head>
@@ -356,6 +359,18 @@
 					<ul class="space-y-2">
 						{#each data.asue as a (a.id)}
 							<li><a href="/atemschutz/{a.id}" class="flex items-center gap-2 font-semibold text-red hover:underline"><Timer size={18} aria-hidden="true" />{a.adresse || 'Ohne Adresse'}, {datumAusIso(a.datum)}, Code {a.id.slice(0, 3)}-{a.id.slice(3)}</a></li>
+						{/each}
+					</ul>
+				</Zeile>
+			</Abschnitt>
+		{/if}
+
+		{#if data.etb.length}
+			<Abschnitt id="etb" titel="Einsatztagebuch" hinweis="Zugeordnete Tagebücher werden im Ausdruck im Querformat angehängt." {farbe}>
+				<Zeile voll>
+					<ul class="space-y-2">
+						{#each data.etb as t (t.id)}
+							<li><a href="/einsatztagebuch/{t.id}" class="flex items-center gap-2 font-semibold text-red hover:underline"><NotebookPen size={18} aria-hidden="true" />{t.einsatzort || 'Ohne Einsatzort'}, {datumAusIso(t.datum)}, {t.eintraege === 1 ? '1 Eintrag' : `${t.eintraege} Einträge`}</a></li>
 						{/each}
 					</ul>
 				</Zeile>

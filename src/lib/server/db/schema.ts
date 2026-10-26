@@ -110,6 +110,38 @@ export const asueEreignisse = sqliteTable(
 	(t) => [index('asue_ereignisse_einsatz').on(t.einsatz, t.seq)]
 );
 
+/* ---------------------------------------------------------------- Einsatztagebuch */
+
+export const etbTagebuecher = sqliteTable('etb_tagebuecher', {
+	/** 6-stelliger Code wie bei der Atemschutzüberwachung */
+	id: text('id').primaryKey(),
+	erstellt: integer('erstellt').notNull(),
+	datum: text('datum').notNull().default(''),
+	einsatzort: text('einsatzort').notNull().default(''),
+	eintraege: integer('eintraege').notNull().default(0),
+	abgeschlossen: integer('abgeschlossen', { mode: 'boolean' }).notNull().default(false),
+	berichtId: integer('bericht_id').references(() => berichte.id, { onDelete: 'set null' }),
+	erstelltVon: integer('erstellt_von').references(() => users.id, { onDelete: 'set null' })
+});
+
+export const etbEreignisse = sqliteTable(
+	'etb_ereignisse',
+	{
+		seq: integer('seq').primaryKey({ autoIncrement: true }),
+		id: text('id').notNull().unique(),
+		tagebuch: text('tagebuch')
+			.notNull()
+			.references(() => etbTagebuecher.id, { onDelete: 'cascade' }),
+		t: integer('t').notNull(),
+		typ: text('typ').notNull(),
+		daten: text('daten').notNull(),
+		geraet: text('geraet').notNull().default(''),
+		userId: integer('user_id').references(() => users.id, { onDelete: 'set null' }),
+		empfangen: integer('empfangen').notNull()
+	},
+	(t) => [index('etb_ereignisse_tagebuch').on(t.tagebuch, t.seq)]
+);
+
 export type User = typeof users.$inferSelect;
 export type Bericht = typeof berichte.$inferSelect;
 export type Mitglied = typeof mannschaft.$inferSelect;

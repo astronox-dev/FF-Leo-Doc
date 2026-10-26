@@ -9,8 +9,8 @@
 	let { data } = $props();
 
 	let breite = $state(800);
-	// 210 mm in CSS-Pixeln; kleinere Bildschirme sehen die Seiten verkleinert
-	const zoom = $derived(Math.min(1, (breite - 16) / 793.7));
+	// 210 mm in CSS-Pixeln (297 mm, wenn ein Tagebuch im Querformat dabei ist); kleinere Bildschirme sehen die Seiten verkleinert
+	const zoom = $derived(Math.min(1, (breite - 16) / (data.etb.length ? 1122.5 : 793.7)));
 	const zurueck = $derived(data.bericht.status === 'offen' ? `/berichte/${data.bericht.id}` : '/admin/archiv');
 </script>
 
@@ -28,7 +28,7 @@
 
 <div class="vorschau" bind:clientWidth={breite}>
 	<div class="seiten" style:zoom>
-		<BerichtDruck typ={data.bericht.typ} daten={data.bericht.daten} mannschaft={data.mannschaft} asue={data.asue} fuss={data.fuss} stand={data.stand} />
+		<BerichtDruck typ={data.bericht.typ} daten={data.bericht.daten} mannschaft={data.mannschaft} asue={data.asue} etb={data.etb} fuss={data.fuss} stand={data.stand} />
 	</div>
 </div>
 
@@ -43,7 +43,8 @@
 		align-items: center;
 		gap: 1.25rem;
 	}
-	.seiten :global(.seite) {
+	.seiten :global(.seite),
+	.seiten :global(.etb-blatt) {
 		box-shadow: 0 0 0 1px rgb(0 0 0 / 0.4);
 	}
 	@media print {
@@ -55,7 +56,8 @@
 			zoom: 1 !important;
 			gap: 0;
 		}
-		.seiten :global(.seite) {
+		.seiten :global(.seite),
+		.seiten :global(.etb-blatt) {
 			box-shadow: none;
 		}
 	}

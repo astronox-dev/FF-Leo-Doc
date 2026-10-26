@@ -2,6 +2,7 @@
 	import FileText from '@lucide/svelte/icons/file-text';
 	import Timer from '@lucide/svelte/icons/timer';
 	import CircleCheck from '@lucide/svelte/icons/circle-check';
+	import NotebookPen from '@lucide/svelte/icons/notebook-pen';
 	import TypMarke from '$lib/components/TypMarke.svelte';
 	import { pageTitle } from '$lib/app';
 	import { TYP_REIHENFOLGE } from '$lib/berichte/typen';
@@ -23,7 +24,7 @@
 	<h1 class="display text-4xl sm:text-5xl">Servus {data.user.name.split(' ')[0]}</h1>
 	<p class="mt-2 text-ink-2">Was steht an?</p>
 
-	<div class="mt-8 grid gap-4 md:grid-cols-2">
+	<div class="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
 		<a href="/berichte" class="kachel card group">
 			<div class="p-6">
 				<FileText size={34} class="text-red" aria-hidden="true" />
@@ -47,10 +48,20 @@
 				</p>
 			</div>
 		</a>
+		<a href="/einsatztagebuch" class="kachel card group">
+			<div class="p-6">
+				<NotebookPen size={34} class="text-red" aria-hidden="true" />
+				<h2 class="display mt-4 text-3xl">Einsatztagebuch</h2>
+				<p class="mt-2 text-ink-2">Meldungen, Aufträge und Maßnahmen mit Uhrzeit festhalten, gemeinsam auf mehreren Geräten, druckbar wie das NÖ-Formular.</p>
+				<p class="mt-4 font-semibold text-red">
+					{data.etb.length === 0 ? 'Kein laufendes Tagebuch' : data.etb.length === 1 ? '1 laufendes Tagebuch' : `${data.etb.length} laufende Tagebücher`}
+				</p>
+			</div>
+		</a>
 	</div>
 
-	{#if data.offen.length || data.asue.length}
-		<div class="mt-10 grid gap-8 md:grid-cols-2">
+	{#if data.offen.length || data.asue.length || data.etb.length}
+		<div class="mt-10 grid gap-8 md:grid-cols-2 xl:grid-cols-3">
 			{#if data.offen.length}
 				<section>
 					<h2 class="text-lg font-bold">Offene Berichte</h2>
@@ -80,6 +91,24 @@
 									<span class="min-w-0 flex-1">
 										<span class="block truncate font-semibold">{e.adresse || 'Ohne Adresse'}</span>
 										<span class="block text-sm text-ink-3">{datumAusIso(e.datum)}, Code {e.id.slice(0, 3)}-{e.id.slice(3)}</span>
+									</span>
+								</a>
+							</li>
+						{/each}
+					</ul>
+				</section>
+			{/if}
+			{#if data.etb.length}
+				<section>
+					<h2 class="text-lg font-bold">Laufende Einsatztagebücher</h2>
+					<ul class="mt-3 divide-y divide-line card overflow-hidden">
+						{#each data.etb as t (t.id)}
+							<li>
+								<a href="/einsatztagebuch/{t.id}" class="flex items-center gap-3 px-4 py-3 hover:bg-surface-2">
+									<span class="grid size-9 place-items-center rounded-lg bg-red text-white"><NotebookPen size={18} aria-hidden="true" /></span>
+									<span class="min-w-0 flex-1">
+										<span class="block truncate font-semibold">{t.einsatzort || 'Ohne Einsatzort'}</span>
+										<span class="block text-sm text-ink-3">{datumAusIso(t.datum)}, {t.eintraege === 1 ? '1 Eintrag' : `${t.eintraege} Einträge`}</span>
 									</span>
 								</a>
 							</li>

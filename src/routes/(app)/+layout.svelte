@@ -9,6 +9,7 @@
 	import Moon from '@lucide/svelte/icons/moon';
 	import Monitor from '@lucide/svelte/icons/monitor';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
+	import NotebookPen from '@lucide/svelte/icons/notebook-pen';
 	import { APP_NAME } from '$lib/app';
 
 	let { data, children } = $props();
@@ -18,6 +19,7 @@
 	const navi = $derived([
 		{ href: '/berichte', text: 'Einsatzberichte', icon: FileText },
 		{ href: '/atemschutz', text: 'Atemschutz', icon: Timer },
+		{ href: '/einsatztagebuch', text: 'Tagebuch', icon: NotebookPen },
 		...(data.user.role === 'admin' ? [{ href: '/admin', text: 'Admin', icon: Settings }] : [])
 	]);
 	const aktiv = (href: string) => page.url.pathname === href || page.url.pathname.startsWith(`${href}/`);

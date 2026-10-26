@@ -1,4 +1,5 @@
 import { asueDruckFuerBericht } from './asue';
+import { etbDruckFuerBericht } from './etb';
 import { berichtLaden, mannschaftFuer, teilnahmeStandFuer } from './berichte';
 import type { SessionUser } from './auth';
 import { TYPEN } from '$lib/berichte/typen';
@@ -16,6 +17,7 @@ export async function druckdaten(id: number, user: SessionUser | null, druck = f
 		mannschaft: await mannschaftFuer(bericht),
 		stand: await teilnahmeStandFuer(bericht),
 		asue: await asueDruckFuerBericht(id),
+		etb: await etbDruckFuerBericht(id),
 		fuss
 	};
 }
