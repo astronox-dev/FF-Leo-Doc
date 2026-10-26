@@ -163,7 +163,12 @@
 	}
 </script>
 
-<svelte:head><title>{pageTitle(z?.kopf ? `Tagebuch ${z.kopf.einsatzort}` : 'Einsatztagebuch')}</title></svelte:head>
+<svelte:head>
+	<title>{pageTitle(z?.kopf ? `Tagebuch ${z.kopf.einsatzort}` : 'Einsatztagebuch')}</title>
+	<!-- Nur auf dieser Seite: Druck im Querformat, sonst verkleinert der Browser das Blatt auf A4 hochkant.
+	     !important, weil die allgemeine Regel (A4 hoch) im Dokument später stehen kann. -->
+	{@html '<style>@page { size: A4 landscape !important; margin: 0; }</style>'}
+</svelte:head>
 
 {#if s?.unbekannt}
 	<div class="wrap pt-10 text-center">

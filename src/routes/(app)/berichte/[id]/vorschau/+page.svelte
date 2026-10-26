@@ -21,7 +21,12 @@
 		<a href={zurueck} class="btn btn-ruhig px-3"><ArrowLeft size={18} aria-hidden="true" />{data.bericht.status === 'offen' ? 'Zum Bericht' : 'Zum Archiv'}</a>
 		<TypMarke typ={data.bericht.typ} />
 		<h1 class="min-w-0 flex-1 truncate font-bold">{data.bericht.daten.einsatzort || 'Ohne Einsatzort'}</h1>
-		<button class="btn" onclick={() => window.print()}><Printer size={18} aria-hidden="true" />Drucken</button>
+		{#if data.etb.length}
+			<!-- Hoch- und Querformat gemischt druckt der Browser nicht zuverlässig: dann über das PDF drucken -->
+			<a href="/berichte/{data.bericht.id}/pdf?ansehen" target="_blank" rel="noopener" class="btn" data-sveltekit-reload><Printer size={18} aria-hidden="true" />Drucken</a>
+		{:else}
+			<button class="btn" onclick={() => window.print()}><Printer size={18} aria-hidden="true" />Drucken</button>
+		{/if}
 		<a href="/berichte/{data.bericht.id}/pdf" class="btn btn-primary" data-sveltekit-reload><FileDown size={18} aria-hidden="true" />PDF herunterladen</a>
 	</div>
 </div>

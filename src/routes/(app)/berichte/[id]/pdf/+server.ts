@@ -28,7 +28,8 @@ export const GET: RequestHandler = async ({ params, locals, url }) => {
 	return new Response(pdf as BodyInit, {
 		headers: {
 			'Content-Type': 'application/pdf',
-			'Content-Disposition': `attachment; filename="${name.replace(/[^\x20-\x7e]/g, '_')}"; filename*=UTF-8''${encodeURIComponent(name)}`,
+			// ?ansehen öffnet das PDF im Browser (zum Drucken), sonst wird es heruntergeladen
+			'Content-Disposition': `${url.searchParams.has('ansehen') ? 'inline' : 'attachment'}; filename="${name.replace(/[^\x20-\x7e]/g, '_')}"; filename*=UTF-8''${encodeURIComponent(name)}`,
 			'Cache-Control': 'no-store'
 		}
 	});
