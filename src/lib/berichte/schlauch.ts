@@ -1,6 +1,6 @@
 /*
  * Schlauchleitung als frei gelegte Linie: weiche Kurve durch alle Punkte (Catmull-Rom),
- * an beiden Enden ein Querstrich wie im Zeichen der RL E-27. Punkte als flache Liste [x, y, x, y …].
+ * ohne Querstriche an den Enden. Punkte als flache Liste [x, y, x, y …].
  */
 
 const r = (v: number) => Math.round(v * 10) / 10;
@@ -44,22 +44,6 @@ function kurvenPunkte(p: number[]): number[] {
 		}
 	}
 	return out;
-}
-
-/** Querstriche an Anfang und Ende, senkrecht zur Richtung der Leitung */
-export function schlauchEnden(p: number[], laenge = 14): string {
-	const n = p.length / 2;
-	if (n < 2) return '';
-	const strich = (x: number, y: number, dx: number, dy: number) => {
-		const l = Math.hypot(dx, dy) || 1;
-		const nx = (-dy / l) * (laenge / 2), ny = (dx / l) * (laenge / 2);
-		return `M${r(x - nx)} ${r(y - ny)} L${r(x + nx)} ${r(y + ny)}`;
-	};
-	return (
-		strich(p[0], p[1], p[2] - p[0], p[3] - p[1]) +
-		' ' +
-		strich(p[n * 2 - 2], p[n * 2 - 1], p[n * 2 - 2] - p[n * 2 - 4], p[n * 2 - 1] - p[n * 2 - 3])
-	);
 }
 
 /**

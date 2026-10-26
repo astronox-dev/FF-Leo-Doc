@@ -310,7 +310,7 @@ export const SYMBOLE: SymbolDef[] = [
 	geraet('behaelter', 'Behälter (Auffangbehälter, Faltbehälter)', `<ellipse cx="24" cy="14" rx="8" ry="4.5" ${st()}/>`),
 
 	/* Löschgeräte */
-	loeschgeraet('schlauch', 'Schlauchleitung (Druck- oder Saugleitung)', 60, 24, pfad('M3 5 C14 5 18 7 22 13 C26 19 33 21 40 18 C46 15 51 12 57 12 M3 2 V8 M57 9 V15', S, 1.3)),
+	loeschgeraet('schlauch', 'Schlauchleitung (Druck- oder Saugleitung)', 60, 24, pfad('M3 5 C14 5 18 7 22 13 C26 19 33 21 40 18 C46 15 51 12 57 12', S, 1.3)),
 	loeschgeraet('strahlrohr', 'Strahl-, Schaum- oder Pulverrohr', 48, 20, pfad(`${PFEIL_LINKS} H44 M44 4 V16`), [
 		{ key: 'groesse', name: 'Größe', x: 24, y: 3.5, groesse: 7.5, knoepfe: ['B', 'C'] }
 	]),

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { LEGENDE_ZEILEN, MASS, SYMBOL, kopfueber, zeichnen, type SymbolDef } from '$lib/berichte/legende';
-	import { schlauchEnden, schlauchMitte, schlauchPfad } from '$lib/berichte/schlauch';
+	import { schlauchMitte, schlauchPfad } from '$lib/berichte/schlauch';
 	import { SKIZZE_B, SKIZZE_H, type Skizze, type SkizzenElement } from '$lib/berichte/typen';
 
 	let {
@@ -167,7 +167,6 @@
 					<path d={pfad} fill="none" stroke="#1f5fa8" stroke-width="10" stroke-opacity="0.3" stroke-linecap="round" />
 				{/if}
 				<path d={pfad} fill="none" stroke="#1a1a1a" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" />
-				<path d={schlauchEnden(e.punkte)} fill="none" stroke="#1a1a1a" stroke-width="2.6" stroke-linecap="round" />
 				{#if e.groesse}
 					{@const m = schlauchMitte(e.punkte)}
 					<!-- Größe (B oder C) mittig neben der Leitung, immer lesbar -->
